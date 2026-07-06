@@ -24,3 +24,34 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ===========================
+   PRINT ONLY RESUME
+=========================== */
+
+@media print {
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  button,
+  nav,
+  aside {
+    display: none !important;
+  }
+}

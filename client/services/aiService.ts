@@ -5,7 +5,7 @@ const API_URL =
 
 export const generateSummary = async (resume: any) => {
   const response = await axios.post(
-    `${API_URL}/generate-summary`,
+    `${API_URL}/ai/generate-summary`,
     resume
   );
 

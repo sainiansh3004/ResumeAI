@@ -362,7 +362,7 @@ const handleSectionOrderChange = (
     {/* RIGHT PANEL */}
     <div
       ref={previewRef}
-      className="flex-1 overflow-y-auto bg-gray-100 p-8"
+     className="print-area flex-1 overflow-y-auto bg-gray-100 p-8"
     >
       <ResumePreview resume={resume} />
     </div>

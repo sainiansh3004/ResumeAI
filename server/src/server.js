@@ -25,12 +25,18 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      // Allow Postman, mobile apps, etc.
+      if (!origin) {
+        return callback(null, true);
+      }
 
-      if (
-        origin === "http://localhost:3000" ||
-        origin.endsWith(".vercel.app")
-      ) {
+      // Allow localhost during development
+      if (origin === "http://localhost:3000") {
+        return callback(null, true);
+      }
+
+      // Allow ALL Vercel deployments
+      if (origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
@@ -39,7 +45,6 @@ app.use(
     credentials: true,
   })
 );
-
 // Increase request body size for Base64 profile photos
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));

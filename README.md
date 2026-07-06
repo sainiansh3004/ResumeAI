@@ -14,12 +14,16 @@
 </div>
 
 ---
-## 🔗 Live Links
+## 🌐 Live Demo
 
-- 🚀 **Live Application:** https://resume-m5fkhvd3i-ansh-s-projects.vercel.app
-- 🌍 **Alternate Deployment:** https://resume-ai-alpha-beige.vercel.app
-- ⚙️ **Backend API:** https://resumeai-qfs2.onrender.com
-- 📂 **GitHub Repository:** https://github.com/sainiansh3004/ResumeAI
+### 🚀 Live Application
+https://resume-ai-alpha-beige.vercel.app
+
+### ⚙️ Backend API
+https://resumeai-qfs2.onrender.com
+
+### 📂 GitHub Repository
+https://github.com/sainiansh3004/ResumeAI
 
 ---
 

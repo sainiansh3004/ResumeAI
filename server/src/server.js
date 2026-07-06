@@ -15,9 +15,20 @@ connectDB();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://resume-ai-six-beta.vercel.app",
+  "https://resume-ai-git-main-ansh-saini-s-projects.vercel.app",
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );

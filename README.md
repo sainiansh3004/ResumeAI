@@ -375,7 +375,7 @@ git push origin feature-name
 
 ## Ansh Saini
 
-📧 Email: 12212096@nitkkr.ac.in
+📧 Email: sainiansh3004@gmail.com
 
 🔗 LinkedIn: https://www.linkedin.com/in/ansh-saini-63b4322aa/
 

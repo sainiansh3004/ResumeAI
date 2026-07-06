@@ -15,6 +15,19 @@
 
 ---
 
+# 🌐 Live Demo
+
+### 🚀 Live Application
+**https://resume-m5fkhvd3i-ansh-saini-s-projects.vercel.app**
+
+### ⚙️ Backend API
+**https://resumeai-qfs2.onrender.com**
+
+### 📂 GitHub Repository
+**https://github.com/sainiansh3004/ResumeAI**
+
+---
+
 ## 📖 Overview
 
 ResumeAI is a modern full-stack AI-powered Resume & Portfolio Builder that helps users create professional resumes in minutes.
@@ -111,7 +124,7 @@ Create resumes with sections including:
 - Git
 - GitHub
 - Postman
-- Railway
+- Render
 - Vercel
 
 ---

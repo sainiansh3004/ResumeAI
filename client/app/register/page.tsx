@@ -34,11 +34,16 @@ export default function RegisterPage() {
 
       router.push("/login");
     } catch (error: any) {
-      alert(
-        error.response?.data?.message ||
-          "Registration Failed"
-      );
-    } finally {
+  console.log("ERROR:", error);
+  console.log("STATUS:", error.response?.status);
+  console.log("DATA:", error.response?.data);
+
+  alert(
+    JSON.stringify(error.response?.data) ||
+    error.message ||
+    "Registration Failed"
+  );
+} finally {
       setLoading(false);
     }
   };

@@ -13,7 +13,7 @@ export default function A4Container({ children }: Props) {
         w-[794px]
         min-h-[1123px]
         bg-white
-        p-12
+        p-6
       "
     >
       {children}

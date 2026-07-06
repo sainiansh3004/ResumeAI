@@ -1,8 +1,6 @@
 "use client";
 import { Resume } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { useParams } from "next/navigation";
 
 
@@ -59,53 +57,17 @@ personalInfo: {
   interests: [],
 });
 
-  const [loading, setLoading] = useState(true);
+const [loading, setLoading] = useState(true);
 const [saving, setSaving] = useState(false);
 const [saved, setSaved] = useState(true);
+const previewRef = useRef<HTMLDivElement>(null);
 
 // ==========================
-// Download PDF
+// Download / Print Resume
 // ==========================
-const downloadPDF = async () => {
-  const input = document.getElementById("resume-preview");
-
-  if (!input) return;
-
-  const canvas = await html2canvas(input, {
-    scale: 3,
-    useCORS: true,
-    backgroundColor: "#ffffff",
-    logging: false,
-  });
-
-  const imgData = canvas.toDataURL("image/png");
-
-  const pdf = new jsPDF("p", "mm", "a4");
-
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = pdf.internal.pageSize.getHeight();
-
-  const imgWidth = pdfWidth;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-  let heightLeft = imgHeight;
-  let position = 0;
-
-  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-
-  heightLeft -= pdfHeight;
-
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeight;
-
-    pdf.addPage();
-
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-
-    heightLeft -= pdfHeight;
-  }
-
-  pdf.save(`${resume.title || "Resume"}.pdf`);
+const downloadPDF = () => {
+  document.title = resume.title || "Resume";
+  window.print();
 };
 
 // ==========================
@@ -358,9 +320,9 @@ const handleSectionOrderChange = (
   }
 
  return (
-  <div className="flex h-screen">
+  <div className="flex min-h-screen print:block">
     {/* LEFT PANEL */}
-    <div className="w-1/2 overflow-y-auto border-r p-6">
+    <div className="w-1/2 shrink-0 overflow-y-auto border-r bg-white p-6 z-10 print:hidden">
       <div className="mb-4 flex items-center justify-between">
         <button
   onClick={downloadPDF}
@@ -399,8 +361,14 @@ const handleSectionOrderChange = (
     </div>
 
     {/* RIGHT PANEL */}
-   <div className="flex-1 overflow-auto bg-gray-200">
-  <ResumePreview resume={resume} />
+<div className="flex-1 overflow-auto bg-gray-200 print:block print:bg-white">
+  <div
+    ref={previewRef}
+    id="print-area"
+    className="mx-auto w-fit py-8"
+  >
+    <ResumePreview resume={resume} />
+  </div>
 </div>
     </div>
 );

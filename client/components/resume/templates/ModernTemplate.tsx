@@ -51,11 +51,11 @@ export default function ModernTemplate({ resume }: Props) {
       {/* ================= HEADER ================= */}
 
       <div
-        className={`mb-8 flex items-start justify-between border-b-2 pb-6 ${theme.border}`}
+        className={`mb-5 flex items-start justify-between border-b-2 pb-3 ${theme.border}`}
       >
         <div className="flex-1">
           <h1
-            className={`text-4xl font-bold ${theme.primary}`}
+            className={`text-3xl font-bold ${theme.primary}`}
           >
             {resume.personalInfo.fullName || "Your Name"}
           </h1>
@@ -66,7 +66,7 @@ export default function ModernTemplate({ resume }: Props) {
             </p>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600">
             {resume.personalInfo.email && (
               <span>{resume.personalInfo.email}</span>
             )}
@@ -110,7 +110,7 @@ export default function ModernTemplate({ resume }: Props) {
 
 <section className="mb-8">
   <h2
-    className={`mb-3 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
+    className={`mb-3 border-b-2 pb-1 text-lg font-bold ${theme.primary} ${theme.border}`}
   >
     Professional Summary
   </h2>
@@ -129,7 +129,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= EDUCATION ================= */}
 
-      <section className="mt-8">
+      <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -184,7 +184,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= EXPERIENCE ================= */}
 
-      <section className="mt-8">
+      <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -236,7 +236,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= SKILLS ================= */}
 
-      <section className="mt-8">
+      <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -263,7 +263,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= PROJECTS ================= */}
 
-            <section className="mt-8">
+            <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -325,7 +325,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= CERTIFICATIONS ================= */}
 
-      <section className="mt-8">
+      <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -366,7 +366,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= LANGUAGES ================= */}
 
-      <section className="mt-8">
+      <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -403,7 +403,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= ACHIEVEMENTS ================= */}
 
-            <section className="mt-8">
+            <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >
@@ -436,7 +436,7 @@ export default function ModernTemplate({ resume }: Props) {
 
       {/* ================= INTERESTS ================= */}
 
-      <section className="mt-8">
+      <section className="mt-4">
         <h2
           className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}
         >

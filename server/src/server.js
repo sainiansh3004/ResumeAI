@@ -19,15 +19,22 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://resume-ai-six-beta.vercel.app",
   "https://resume-ai-git-main-ansh-saini-s-projects.vercel.app",
+  "https://resume-m5fkhvd3i-ansh-saini-s-projects.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+
+      if (
+        origin === "http://localhost:3000" ||
+        origin.endsWith(".vercel.app")
+      ) {
         return callback(null, true);
       }
-      callback(new Error("Not allowed by CORS"));
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })

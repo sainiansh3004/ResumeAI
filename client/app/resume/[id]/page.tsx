@@ -1,7 +1,8 @@
 "use client";
 import { Resume } from "@/types/resume";
-import { useReactToPrint } from "react-to-print";
 import { useEffect, useRef, useState } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { useParams } from "next/navigation";
 
 
@@ -59,20 +60,58 @@ personalInfo: {
 });
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(true);
+const [saving, setSaving] = useState(false);
+const [saved, setSaved] = useState(true);
 
-  const previewRef = useRef<HTMLDivElement>(null);
+// ==========================
+// Download PDF
+// ==========================
+const downloadPDF = async () => {
+  const input = document.getElementById("resume-preview");
 
-  const handlePrint = useReactToPrint({
-    contentRef: previewRef,
-    documentTitle: resume.title || "Resume",
+  if (!input) return;
+
+  const canvas = await html2canvas(input, {
+    scale: 3,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
   });
 
-  // ==========================
-  // Load Resume
-  // ==========================
-  useEffect(() => {
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+
+  const imgWidth = pdfWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+
+  heightLeft -= pdfHeight;
+
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+
+    pdf.addPage();
+
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+
+    heightLeft -= pdfHeight;
+  }
+
+  pdf.save(`${resume.title || "Resume"}.pdf`);
+};
+
+// ==========================
+// Load Resume
+// ==========================
+useEffect(() => {
     const fetchResume = async () => {
       try {
         if (!id) return;
@@ -324,11 +363,11 @@ const handleSectionOrderChange = (
     <div className="w-1/2 overflow-y-auto border-r p-6">
       <div className="mb-4 flex items-center justify-between">
         <button
-          onClick={handlePrint}
-          className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
-        >
-          Print / Save PDF
-        </button>
+  onClick={downloadPDF}
+  className="rounded-lg bg-blue-600 px-5 py-2 text-white transition hover:bg-blue-700"
+>
+  Download PDF
+</button>
 
         <div className="text-sm text-gray-500">
           {saving ? "Saving..." : saved ? "Saved" : "Not Saved"}
@@ -360,12 +399,9 @@ const handleSectionOrderChange = (
     </div>
 
     {/* RIGHT PANEL */}
-    <div
-      ref={previewRef}
-     className="print-area flex-1 overflow-y-auto bg-gray-100 p-8"
-    >
-      <ResumePreview resume={resume} />
-    </div>
+   <div className="flex-1 overflow-auto bg-gray-200">
+  <ResumePreview resume={resume} />
+</div>
     </div>
 );
 }

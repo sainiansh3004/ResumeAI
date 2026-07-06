@@ -47,8 +47,7 @@ export default function ModernTemplate({ resume }: Props) {
   console.log("FULL RESUME:", resume);
 
   return (
-    <div className="w-full rounded-lg bg-white p-8 shadow-lg">
-
+    <div className="w-full bg-white">
       {/* ================= HEADER ================= */}
 
       <div

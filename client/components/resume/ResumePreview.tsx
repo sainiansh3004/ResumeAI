@@ -17,7 +17,10 @@ export default function ResumePreview({
   resume,
 }: ResumePreviewProps) {
   return (
-    <div className="h-full w-full overflow-y-auto bg-gray-100">
+    <div
+      id="resume-preview"
+      className="flex w-full justify-center overflow-y-auto bg-gray-200 p-8"
+    >
       <A4Container>
         {resume.template === "modern" && (
           <ModernTemplate resume={resume} />

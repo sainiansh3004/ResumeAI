@@ -7,7 +7,8 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 const aiRoutes = require("./routes/aiRoutes");
-console.log("AI ROUTER TYPE:", typeof aiRoutes);
+const portfolioRoutes = require("./routes/portfolioRoutes");
+const billingRoutes = require("./routes/billingRoutes");
 
 dotenv.config();
 
@@ -15,37 +16,22 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://resume-ai-six-beta.vercel.app",
-  "https://resume-ai-git-main-ansh-saini-s-projects.vercel.app",
-  "https://resume-m5fkhvd3i-ansh-saini-s-projects.vercel.app",
-];
-
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow Postman, mobile apps, etc.
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      // Allow localhost during development
-      if (origin === "http://localhost:3000") {
-        return callback(null, true);
-      }
-
-      // Allow ALL Vercel deployments
-      if (origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-
+      if (!origin) return callback(null, true);
+      if (origin === "http://localhost:3000") return callback(null, true);
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
 );
-// Increase request body size for Base64 profile photos
+
+// Stripe webhook needs raw body — must be BEFORE json parser
+app.use("/api/billing/webhook", express.raw({ type: "application/json" }));
+
+// Standard JSON parser
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -54,38 +40,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// ===== DIAGNOSTIC =====
-app.get("/hello-test", (req, res) => {
-  res.send("SERVER UPDATED");
-});
-
-console.log("AI ROUTER LOADED:", typeof aiRoutes);
-// ======================
-
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/resumes", resumeRoutes);
-app.get("/debug-ai", (req, res) => {
-  res.json({
-    aiRouterType: typeof aiRoutes,
-    mounted: true,
-  });
-});
 app.use("/api/ai", aiRoutes);
+app.use("/api/portfolios", portfolioRoutes);
+app.use("/api/billing", billingRoutes);
 
 // Health Check
 app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "THIS IS MY NEW SERVER",
-  });
-});
-
-app.get("/debug-ai", (req, res) => {
-  res.json({
-    success: true,
-    message: "DEBUG ROUTE WORKING",
-  });
+  res.json({ success: true, message: "ResumeAI API Server" });
 });
 
 const PORT = process.env.PORT || 5001;

@@ -10,7 +10,7 @@ const resumeSchema = new mongoose.Schema(
 
     template: {
       type: String,
-      enum: ["modern", "minimal", "ats", "creative"],
+      enum: ["modern", "minimal", "ats", "creative", "executive", "tech", "academic", "sleek"],
       default: "modern",
     },
 
@@ -247,6 +247,52 @@ const resumeSchema = new mongoose.Schema(
         },
       },
     ],
+
+    settings: {
+      fontFamily: {
+        type: String,
+        default: "Inter",
+      },
+      fontSize: {
+        type: String,
+        enum: ["sm", "md", "lg"],
+        default: "md",
+      },
+      lineHeight: {
+        type: String,
+        enum: ["snug", "normal", "relaxed"],
+        default: "normal",
+      },
+      margin: {
+        type: String,
+        enum: ["compact", "normal", "spacious"],
+        default: "normal",
+      },
+      accentColor: {
+        type: String,
+        default: "",
+      },
+      showPageNumbers: {
+        type: Boolean,
+        default: true,
+      },
+    },
+
+    customTitles: {
+      type: Map,
+      of: String,
+      default: {},
+    },
+
+    hiddenSections: {
+      type: [String],
+      default: [],
+    },
+
+    sectionOrder: {
+      type: [String],
+      default: ["experience", "education", "skills", "projects", "certifications", "achievements", "languages", "interests"],
+    },
   },
   {
     timestamps: true,

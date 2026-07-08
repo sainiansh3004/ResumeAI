@@ -22,6 +22,21 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: 6,
     },
+
+    isPro: {
+      type: Boolean,
+      default: false,
+    },
+
+    stripeCustomerId: {
+      type: String,
+      default: "",
+    },
+
+    stripeSubscriptionId: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

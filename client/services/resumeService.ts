@@ -60,3 +60,17 @@ export const getResumeById = async (id: string) => {
 
   return res.data;
 };
+
+export const duplicateResume = async (id: string) => {
+  const res = await axios.post(
+    `${API_URL}/${id}/duplicate`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    }
+  );
+
+  return res.data;
+};

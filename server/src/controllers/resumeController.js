@@ -171,10 +171,51 @@ const deleteResume = async (req, res) => {
   }
 };
 
+// ==========================
+// Duplicate Resume
+// ==========================
+const duplicateResume = async (req, res) => {
+  try {
+    const originalResume = await Resume.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+
+    if (!originalResume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found",
+      });
+    }
+
+    const resumeObj = originalResume.toObject();
+    delete resumeObj._id;
+    delete resumeObj.createdAt;
+    delete resumeObj.updatedAt;
+
+    resumeObj.title = `${resumeObj.title} (Copy)`;
+
+    const duplicated = await Resume.create(resumeObj);
+
+    res.status(201).json({
+      success: true,
+      message: "Resume duplicated successfully",
+      resume: duplicated,
+    });
+  } catch (error) {
+    console.error("DUPLICATE ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 module.exports = {
   createResume,
   getMyResumes,
   getResumeById,
   updateResume,
   deleteResume,
+  duplicateResume,
 };

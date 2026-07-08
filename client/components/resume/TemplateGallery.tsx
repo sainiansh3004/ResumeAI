@@ -16,6 +16,7 @@ const templates: {
   ats: boolean;
   recommended: boolean;
   comingSoon: boolean;
+  pro?: boolean;
 }[] = [
   {
     id: "modern",
@@ -57,6 +58,50 @@ const templates: {
     recommended: false,
     comingSoon: false,
   },
+  {
+    id: "executive",
+    name: "Executive Premium",
+    category: "Executive",
+    description:
+      "A gorgeous multi-column layout optimized for senior staff and leadership.",
+    ats: true,
+    recommended: false,
+    comingSoon: false,
+    pro: true,
+  },
+  {
+    id: "tech",
+    name: "Developer Tech",
+    category: "Technology",
+    description:
+      "Chronological developer density highlighting key repository and project tags.",
+    ats: true,
+    recommended: true,
+    comingSoon: false,
+    pro: true,
+  },
+  {
+    id: "academic",
+    name: "CV Academic",
+    category: "Academic / Serif",
+    description:
+      "Sophisticated serif structure styled for research, honors, and publications.",
+    ats: true,
+    recommended: false,
+    comingSoon: false,
+    pro: true,
+  },
+  {
+    id: "sleek",
+    name: "Sleek Modern",
+    category: "Modern / Minimalist",
+    description:
+      "Clean visual block-grid dividers for outstanding visual presentation.",
+    ats: false,
+    recommended: false,
+    comingSoon: false,
+    pro: true,
+  },
 ];
 
 export default function TemplateGallery({
@@ -90,6 +135,7 @@ export default function TemplateGallery({
             recommended={template.recommended}
             comingSoon={template.comingSoon}
             selected={selectedTemplate === template.id}
+            pro={template.pro}
             onSelect={onSelectTemplate}
           />
         ))}

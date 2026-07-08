@@ -30,6 +30,11 @@ body {
 =========================== */
 
 @media print {
+  @page {
+    size: A4;
+    margin: 0 !important;
+  }
+
   body * {
     visibility: hidden !important;
   }
@@ -48,6 +53,11 @@ body {
     padding: 0 !important;
     background: white !important;
     overflow: visible !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
   button,

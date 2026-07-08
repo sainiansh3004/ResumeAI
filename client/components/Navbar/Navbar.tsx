@@ -1,62 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
+  const pathname = usePathname();
+
   return (
-    <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
+    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-4">
 
         {/* Logo */}
-        <Link
-          href="/"
-          className="cursor-pointer text-3xl font-bold text-blue-600"
-        >
-          ResumeAI
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/30">
+            R
+          </div>
+          <span className="text-lg font-black tracking-tight text-gray-950">ResumeAI</span>
         </Link>
 
         {/* Navigation */}
-        <div className="hidden gap-10 font-medium text-gray-700 md:flex">
-
-          <a href="#home" className="transition hover:text-blue-600">
-            Home
-          </a>
-
-          <a href="#features" className="transition hover:text-blue-600">
-            Features
-          </a>
-
-          <a href="#templates" className="transition hover:text-blue-600">
-            Templates
-          </a>
-
-          <a href="#pricing" className="transition hover:text-blue-600">
-            Pricing
-          </a>
-
-          <a href="#contact" className="transition hover:text-blue-600">
-            Contact
-          </a>
-
+        <div className="hidden gap-8 font-semibold text-sm text-gray-500 md:flex">
+          <a href="#home" className="hover:text-gray-900 transition">Home</a>
+          <a href="#features" className="hover:text-gray-900 transition">Features</a>
+          <a href="#pricing" className="hover:text-gray-900 transition">Pricing</a>
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-4">
-
+        {/* Auth Buttons */}
+        <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="rounded-lg border px-5 py-2 transition hover:bg-gray-100"
+            className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition px-3 py-2"
           >
-            Login
+            Sign In
           </Link>
-
           <Link
             href="/register"
-            className="rounded-lg bg-blue-600 px-6 py-2 text-white transition hover:bg-blue-700"
+            className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5"
+            style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
           >
-            Get Started
+            Get Started Free
           </Link>
-
         </div>
 
       </div>

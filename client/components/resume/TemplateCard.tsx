@@ -16,6 +16,7 @@ export interface TemplateCardProps {
 
   category: string;
   recommended?: boolean;
+  pro?: boolean;
 
   onSelect: (id: Resume["template"]) => void;
 }
@@ -29,6 +30,7 @@ export default function TemplateCard({
   comingSoon = false,
   category,
   recommended = false,
+  pro = false,
   onSelect,
 }: TemplateCardProps) {
   return (
@@ -39,13 +41,18 @@ export default function TemplateCard({
           : "border-gray-200 hover:-translate-y-1 hover:shadow-xl"
       }`}
     >
-      {/* Recommended */}
-      {recommended && (
+      {/* Recommended / Pro */}
+      {pro ? (
+        <div className="absolute left-4 top-4 z-20 flex items-center gap-1 rounded-full bg-yellow-500 px-3 py-1 text-xs font-semibold text-white shadow">
+          <Sparkles className="h-3.5 w-3.5" />
+          Pro Layout
+        </div>
+      ) : recommended ? (
         <div className="absolute left-4 top-4 z-20 flex items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-white shadow">
           <Sparkles className="h-3.5 w-3.5" />
           Recommended
         </div>
-      )}
+      ) : null}
 
       {/* ATS */}
       {ats && (

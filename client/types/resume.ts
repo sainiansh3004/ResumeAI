@@ -124,6 +124,19 @@ export interface Interest {
 }
 
 // ==========================
+// Resume Settings
+// ==========================
+
+export interface ResumeSettings {
+  fontFamily: string;
+  fontSize: "sm" | "md" | "lg";
+  lineHeight: "snug" | "normal" | "relaxed";
+  margin: "compact" | "normal" | "spacious";
+  accentColor: string; // custom hex color or predefined key
+  showPageNumbers: boolean;
+}
+
+// ==========================
 // Resume
 // ==========================
 
@@ -132,7 +145,7 @@ export interface Resume {
 
   title: string;
 
-  template: "modern" | "minimal" | "ats" | "creative";
+  template: "modern" | "minimal" | "ats" | "creative" | "executive" | "tech" | "academic" | "sleek";
 
   themeColor: "blue" | "purple" | "green" | "black" | "red";
 
@@ -156,6 +169,11 @@ export interface Resume {
   languages: Language[];
 
   interests: Interest[];
+
+  // Customizations
+  settings?: ResumeSettings;
+  customTitles?: Record<string, string>;
+  hiddenSections?: string[];
 
   createdAt?: string;
   updatedAt?: string;

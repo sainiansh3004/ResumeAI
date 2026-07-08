@@ -7,6 +7,7 @@ const {
   getResumeById,
   updateResume,
   deleteResume,
+  duplicateResume,
 } = require("../controllers/resumeController");
 
 const protect = require("../middleware/authMiddleware");
@@ -35,5 +36,10 @@ router.put("/:id", protect, updateResume);
 // Delete Resume
 // ==========================
 router.delete("/:id", protect, deleteResume);
+
+// ==========================
+// Duplicate Resume
+// ==========================
+router.post("/:id/duplicate", protect, duplicateResume);
 
 module.exports = router;

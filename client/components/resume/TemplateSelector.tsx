@@ -19,6 +19,14 @@ const themeColors: Resume["themeColor"][] = [
   "red",
 ];
 
+const COLOR_MAP: Record<Resume["themeColor"], string> = {
+  blue: "#2563eb",
+  purple: "#7c3aed",
+  green: "#10b981",
+  black: "#111827",
+  red: "#ef4444",
+};
+
 export default function TemplateSelector({
   selectedTemplate,
   selectedTheme,
@@ -48,7 +56,7 @@ export default function TemplateSelector({
                   ? "border-gray-900 scale-110"
                   : "border-gray-200"
               }`}
-              style={{ backgroundColor: color }}
+              style={{ backgroundColor: COLOR_MAP[color] }}
             />
           ))}
         </div>

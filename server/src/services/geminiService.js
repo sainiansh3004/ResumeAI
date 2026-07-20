@@ -1,49 +1,29 @@
 require("dotenv").config();
 
+const OpenAI = require("openai");
+
 // ==========================
-// Shared Gemini API caller
+// Groq Client (OpenAI-compatible)
 // ==========================
-const callGemini = async (prompt) => {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 
-  let lastError;
+const MODEL = "llama-3.3-70b-versatile";
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
-      });
+// ==========================
+// Shared Groq API caller
+// ==========================
+const callGroq = async (prompt) => {
+  const response = await groq.chat.completions.create({
+    model: MODEL,
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.7,
+    max_tokens: 1024,
+  });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        return data.candidates[0].content.parts[0].text;
-      }
-
-      lastError = data;
-
-      if (response.status !== 503) {
-        throw new Error(JSON.stringify(data));
-      }
-
-      console.log(`Gemini busy... retry ${attempt}`);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  throw new Error(JSON.stringify(lastError));
+  return response.choices[0]?.message?.content ?? "";
 };
 
 // ==========================
@@ -88,10 +68,10 @@ Requirements:
 - 4-5 lines
 - ATS Friendly
 - Professional
-- Return ONLY the summary.
+- Return ONLY the summary text, no labels or headers.
 `;
 
-  return callGemini(prompt);
+  return callGroq(prompt);
 };
 
 // ==========================
@@ -116,7 +96,7 @@ Requirements:
 - Return ONLY the rewritten bullet points, nothing else.
 `;
 
-  return callGemini(prompt);
+  return callGroq(prompt);
 };
 
 // ==========================
@@ -147,7 +127,7 @@ Requirements:
 - Return ONLY the cover letter body text.
 `;
 
-  return callGemini(prompt);
+  return callGroq(prompt);
 };
 
 // ==========================
@@ -166,10 +146,10 @@ Requirements:
 - Only suggest skills NOT already in the current list.
 - Mix technical and soft skills relevant to the job title.
 - Return as a JSON array of strings, e.g. ["Skill 1", "Skill 2"].
-- Return ONLY the JSON array, no extra text.
+- Return ONLY the JSON array, no extra text or markdown.
 `;
 
-  return callGemini(prompt);
+  return callGroq(prompt);
 };
 
 module.exports = {

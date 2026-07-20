@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getPortfolioBySubdomain } from "@/services/portfolioService";
-import { Mail, Phone, MapPin, Globe, RefreshCw, Cpu, Award } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, RefreshCw, Cpu, Award, GraduationCap } from "lucide-react";
 
 export default function PublicPortfolioPage() {
   const params = useParams();
@@ -212,6 +212,42 @@ export default function PublicPortfolioPage() {
                   <p className="text-gray-600 text-xs leading-relaxed text-justify whitespace-pre-line max-w-3xl">
                     {exp.description}
                   </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Education */}
+      {education.length > 0 && (
+        <section className="py-16 px-6 max-w-5xl mx-auto border-b border-gray-50 space-y-10">
+          <h2 className="text-xl font-bold uppercase tracking-widest text-gray-900 flex items-center gap-2">
+            <GraduationCap className={`h-5 w-5 ${colors.text}`} />
+            Education
+          </h2>
+
+          <div className="relative border-l border-gray-100 pl-8 space-y-10">
+            {education.map((edu: any, index: number) => (
+              <div key={index} className="relative space-y-1">
+                {/* Node bubble */}
+                <div className={`absolute -left-[37px] top-1.5 h-4.5 w-4.5 rounded-full border-4 border-white shadow-sm ${colors.bg}`} />
+
+                <div className="flex flex-wrap justify-between items-baseline gap-2">
+                  <h3 className="text-lg font-bold text-gray-900">{edu.college || "University / College"}</h3>
+                  <span className={`text-xs font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-md ${colors.accentBg}`}>
+                    {edu.startYear} {edu.startYear && edu.endYear && "–"} {edu.endYear}
+                  </span>
+                </div>
+
+                <div className="text-xs text-gray-600 font-semibold">
+                  {edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ""}
+                </div>
+
+                {edu.cgpa && (
+                  <div className="text-xs text-gray-400 font-medium">
+                    GPA / CGPA: {edu.cgpa}
+                  </div>
                 )}
               </div>
             ))}

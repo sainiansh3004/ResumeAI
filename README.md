@@ -8,8 +8,9 @@
 ![Express](https://img.shields.io/badge/Express-black?style=for-the-badge&logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwind-css)
+![Groq](https://img.shields.io/badge/Groq_AI-FF6600?style=for-the-badge&logo=data:image/svg+xml;base64,)
 
-**Build Professional ATS-Friendly Resumes with AI**
+**Build Professional ATS-Friendly Resumes & Portfolio Websites with AI**
 
 </div>
 
@@ -29,9 +30,9 @@ https://github.com/sainiansh3004/ResumeAI
 
 ## 📖 Overview
 
-ResumeAI is a modern full-stack AI-powered Resume & Portfolio Builder that helps users create professional resumes in minutes.
+ResumeAI is a modern full-stack AI-powered Resume & Portfolio Builder that helps users create professional resumes and personal portfolio websites in minutes.
 
-The application provides real-time editing, AI-generated professional summaries, multiple ATS-friendly templates, PDF export, authentication, and an intuitive dashboard to manage resumes.
+The application provides real-time editing, AI-generated professional summaries, cover letter generation, ATS scoring, 8 premium templates, drag & drop section reordering, PDF export, portfolio website builder with custom subdomains, Razorpay billing, and an intuitive dashboard to manage everything.
 
 ---
 
@@ -39,19 +40,18 @@ The application provides real-time editing, AI-generated professional summaries,
 
 ### 🔐 Authentication
 
-- User Registration
-- Secure Login
-- JWT Authentication
-- Protected Routes
+- User Registration & Secure Login
+- JWT Authentication with Protected Routes
 - Password Encryption using bcrypt
 
 ---
 
 ### 📝 Resume Builder
 
-Create resumes with sections including:
+Create resumes with fully customizable sections:
 
-- Personal Information
+- Personal Information (with photo upload)
+- Professional Summary (AI-generated)
 - Education
 - Experience
 - Skills
@@ -63,38 +63,65 @@ Create resumes with sections including:
 
 ---
 
-### 🤖 AI Features
+### 🤖 AI Features (Powered by Groq — Llama 3.3 70B)
 
-- AI Resume Summary Generation
-- Google Gemini AI Integration
-- One-click Professional Summary
-
----
-
-### 🎨 Resume Templates
-
-- Modern Template
-- ATS Template
-- Minimal Template
-- Creative Template
+- **AI Resume Summary Generation** — One-click professional summary
+- **Experience Bullet Optimizer** — Rewrite bullets with strong action verbs & metrics
+- **Cover Letter Generator** — Tailored cover letters for any job description
+- **Skill Recommender** — AI-suggested skills based on target job title
+- **ATS Score Audit** — Real-time scoring with actionable recommendations
 
 ---
 
-### ⚡ Live Editing
+### 🎨 8 Resume Templates
+
+| Free Templates | Pro Templates |
+|---------------|---------------|
+| Modern | Executive |
+| ATS | Tech |
+| Minimal | Academic |
+| Creative | Sleek |
+
+---
+
+### ⚡ Live Editing & Customization
 
 - Live Resume Preview
+- Drag & Drop Section Reordering
+- Hide/Show Sections
+- Custom Section Titles
+- Typography & Layout Controls (Font Family, Size, Line Height, Margins)
+- 5 Theme Colors (Blue, Purple, Green, Black, Red)
+- Undo/Redo Support
 - Auto Save
-- Responsive Design
-- Professional Layout
-- Theme Customization
+
+---
+
+### 🌐 Portfolio Website Builder
+
+- Convert any resume into a live personal website
+- Claim a custom subdomain (resumeai.app/yourname)
+- Choose from 4 website themes (Modern, Sleek, Minimal, Creative)
+- Accent color customization
+- View counter & analytics
+- Sections: Hero, Skills, Experience, Education, Projects, Contact
+
+---
+
+### 💳 Billing (Razorpay)
+
+- Free tier with 4 standard templates
+- Pro plan (₹999/year) unlocks all 8 templates, AI suite, and portfolio hosting
+- Razorpay payment gateway integration
+- Demo mode for local development
 
 ---
 
 ### 📄 Export
 
-- High Quality PDF Export
-- Print Friendly Layout
-- ATS Compatible Resume
+- High Quality PDF Export via browser print
+- Print-optimized CSS (only resume prints, no sidebar)
+- ATS Compatible output
 
 ---
 
@@ -102,29 +129,29 @@ Create resumes with sections including:
 
 ## Frontend
 
-- Next.js 16
-- React
+- Next.js 16 (App Router)
+- React 19
 - TypeScript
 - Tailwind CSS
 - Axios
+- @dnd-kit (drag & drop)
+- Lucide React (icons)
 
 ## Backend
 
 - Node.js
-- Express.js
-- MongoDB Atlas
-- Mongoose
+- Express.js 5
+- MongoDB Atlas + Mongoose
 - JWT Authentication
 - bcrypt
-- Google Gemini AI
+- Groq AI (Llama 3.3 70B via OpenAI SDK)
+- Razorpay Payment Gateway
 
 ## Tools
 
-- Git
-- GitHub
-- Postman
-- Render
-- Vercel
+- Git & GitHub
+- Vercel (Frontend hosting)
+- Render (Backend hosting)
 
 ---
 
@@ -135,20 +162,50 @@ ResumeAI
 │
 ├── client
 │   ├── app
+│   │   ├── dashboard/         # User dashboard
+│   │   ├── login/             # Login page
+│   │   ├── register/          # Registration page
+│   │   ├── resume/[id]/       # Resume builder
+│   │   ├── portfolio/[subdomain]/ # Public portfolio page
+│   │   ├── not-found.tsx      # Custom 404 page
+│   │   ├── globals.css        # Global styles + print CSS
+│   │   ├── layout.tsx         # Root layout
+│   │   └── page.tsx           # Landing page
 │   ├── components
-│   ├── services
-│   ├── public
-│   └── types
+│   │   ├── Hero/              # Landing page hero
+│   │   ├── Features/          # Features section
+│   │   ├── Pricing/           # Pricing section
+│   │   ├── Navbar/            # Navigation bar
+│   │   ├── Footer/            # Footer
+│   │   ├── portfolio/         # Portfolio customizer
+│   │   └── resume/
+│   │       ├── forms/         # Section form components
+│   │       ├── templates/     # 8 resume templates
+│   │       ├── ResumeForm.tsx
+│   │       ├── ResumePreview.tsx
+│   │       ├── TemplateSelector.tsx
+│   │       ├── SectionOrderEditor.tsx
+│   │       ├── LayoutStyleEditor.tsx
+│   │       ├── AiSuite.tsx
+│   │       └── A4Container.tsx
+│   ├── services/              # API client services
+│   ├── types/                 # TypeScript interfaces
+│   └── utils/                 # Hooks (useUndoRedo)
 │
 ├── server
-│   ├── src
-│   │
-│   ├── config
-│   ├── controllers
-│   ├── middleware
-│   ├── models
-│   ├── routes
-│   └── services
+│   └── src
+│       ├── config/            # Database connection
+│       ├── controllers/       # Route handlers
+│       │   ├── authController.js
+│       │   ├── resumeController.js
+│       │   ├── aiController.js
+│       │   ├── portfolioController.js
+│       │   └── razorpayController.js
+│       ├── middleware/         # Auth middleware
+│       ├── models/            # Mongoose schemas
+│       ├── routes/            # Express routes
+│       ├── services/          # Groq AI service
+│       └── server.js          # Entry point
 │
 └── README.md
 ```
@@ -161,15 +218,12 @@ ResumeAI
 
 ```bash
 git clone https://github.com/sainiansh3004/ResumeAI.git
-```
-
-```bash
 cd ResumeAI
 ```
 
 ---
 
-# Backend Setup
+## Backend Setup
 
 ```bash
 cd server
@@ -185,10 +239,15 @@ MONGODB_URI=YOUR_MONGODB_URI
 
 JWT_SECRET=YOUR_SECRET
 
-GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+GROQ_API_KEY=YOUR_GROQ_API_KEY
+
+RAZORPAY_KEY_ID=YOUR_RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET=YOUR_RAZORPAY_KEY_SECRET
 ```
 
-Run Backend
+> Get a free Groq API key at [console.groq.com](https://console.groq.com)
+
+Run Backend:
 
 ```bash
 npm run dev
@@ -196,20 +255,27 @@ npm run dev
 
 ---
 
-# Frontend Setup
+## Frontend Setup
 
 ```bash
 cd client
 npm install
 ```
 
-Run Frontend
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5001/api
+NEXT_PUBLIC_RAZORPAY_KEY_ID=YOUR_RAZORPAY_KEY_ID
+```
+
+Run Frontend:
 
 ```bash
 npm run dev
 ```
 
-Visit
+Visit:
 
 ```
 http://localhost:3000
@@ -253,76 +319,68 @@ http://localhost:3000
 
 ## Authentication
 
-```
-POST /api/auth/register
-```
-
-```
-POST /api/auth/login
-```
-
-```
-GET /api/auth/profile
-```
-
----
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/profile` | Get user profile (protected) |
 
 ## Resume
 
-```
-POST /api/resumes
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/resumes` | Create resume |
+| GET | `/api/resumes` | Get all user resumes |
+| GET | `/api/resumes/:id` | Get resume by ID |
+| PUT | `/api/resumes/:id` | Update resume |
+| DELETE | `/api/resumes/:id` | Delete resume |
+| POST | `/api/resumes/:id/duplicate` | Duplicate resume |
 
-```
-GET /api/resumes
-```
+## AI (Protected)
 
-```
-GET /api/resumes/:id
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/ai/generate-summary` | Generate AI resume summary |
+| POST | `/api/ai/optimize-experience` | Optimize experience bullets |
+| POST | `/api/ai/generate-cover-letter` | Generate cover letter |
+| POST | `/api/ai/recommend-skills` | Get AI skill suggestions |
 
-```
-PUT /api/resumes/:id
-```
+## Portfolio
 
-```
-DELETE /api/resumes/:id
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/portfolios/me` | Get user portfolio (protected) |
+| POST | `/api/portfolios` | Create/update portfolio (protected) |
+| POST | `/api/portfolios/convert/:resumeId` | Convert resume to portfolio (protected) |
+| GET | `/api/portfolios/subdomain/:subdomain` | Get public portfolio |
 
----
+## Billing
 
-## AI
-
-```
-POST /api/ai/generate-summary
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/billing/razorpay-order` | Create Razorpay order (protected) |
+| POST | `/api/billing/razorpay-verify` | Verify payment (protected) |
 
 ---
 
 # 🌟 Highlights
 
-- AI Powered Resume Generation
-- Google Gemini AI
-- ATS Friendly Templates
+- AI Powered Resume Generation (Groq — Llama 3.3 70B)
+- 8 Premium ATS-Friendly Templates
+- Portfolio Website Builder with Custom Subdomains
+- Cover Letter Generator
+- ATS Score Audit with Recommendations
+- Experience Bullet Optimizer
+- Skill Recommender
+- Drag & Drop Section Reordering
+- Typography & Layout Customization
+- Razorpay Payment Integration
 - Live Resume Preview
 - PDF Export
 - JWT Authentication
+- Undo/Redo Support
 - Responsive Design
-- Resume CRUD Operations
 - Auto Save
-- Modern User Interface
-
----
-
-# 🚀 Future Enhancements
-
-- Drag & Drop Resume Sections
-- Portfolio Website Generation
-- Resume Score Analysis
-- Cover Letter Generator
-- AI Interview Preparation
-- Resume Version History
-- Cloud Storage
 
 ---
 
@@ -330,15 +388,17 @@ POST /api/ai/generate-summary
 
 This project strengthened my understanding of:
 
-- Full Stack Development
+- Full Stack Development (Next.js + Express)
 - REST API Design
-- JWT Authentication
+- JWT Authentication & Protected Routes
 - MongoDB & Mongoose
-- Next.js App Router
+- Next.js 16 App Router
 - TypeScript
 - Tailwind CSS
-- AI Integration using Google Gemini
-- PDF Generation
+- AI Integration using Groq (OpenAI-compatible SDK)
+- Payment Gateway Integration (Razorpay)
+- Drag & Drop (dnd-kit)
+- PDF Generation & Print CSS
 - Responsive UI Design
 
 ---

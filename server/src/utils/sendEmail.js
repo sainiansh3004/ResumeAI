@@ -9,17 +9,12 @@ const sendEmail = async ({ to, subject, html, text }) => {
   console.log(`🔑 OTP Code: ${cleanOtp}\n`);
 
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    service: "gmail",
     auth: { user, pass },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 15000,
   });
 
   const mailOptions = {
-    from: user,
+    from: `"${process.env.EMAIL_FROM_NAME || "ResumeAI"}" <${user}>`,
     to,
     subject,
     text,

@@ -83,8 +83,11 @@ const sendEmail = async ({ to, subject, html, text }) => {
     return { success: true, mock: true };
   }
 
+  const senderEmail = (process.env.EMAIL_USER || "sainiansh3004@gmail.com").trim();
+  const senderName = process.env.EMAIL_FROM_NAME || "ResumeAI";
+
   const mailOptions = {
-    from: `"${process.env.EMAIL_FROM_NAME || "ResumeAI"}" <${(process.env.EMAIL_USER || "").trim()}>`,
+    from: `"${senderName}" <${senderEmail}>`,
     to,
     subject,
     text,

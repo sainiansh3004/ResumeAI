@@ -595,38 +595,9 @@ const handleSettingsChange = (
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                <span>Download PDF (1 Page)</span>
+                <span>Download PDF</span>
               </>
             )}
-          </button>
-
-          <button
-            onClick={() => {
-              const currentFit = resume.settings?.fitToOnePage;
-              handleSettingsChange({
-                ...(resume.settings || {
-                  fontFamily: "Inter",
-                  fontSize: "md",
-                  lineHeight: "normal",
-                  margin: "normal",
-                  accentColor: "",
-                  showPageNumbers: true,
-                }),
-                fitToOnePage: !currentFit,
-                fontSize: !currentFit ? "sm" : "md",
-                lineHeight: !currentFit ? "snug" : "normal",
-                margin: !currentFit ? "compact" : "normal",
-              });
-            }}
-            title="Toggle 1-Page Resume Layout"
-            className={`rounded-lg px-3 py-2 transition font-bold text-xs flex items-center gap-1 cursor-pointer border ${
-              resume.settings?.fitToOnePage
-                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 shadow-sm"
-                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{resume.settings?.fitToOnePage ? "1-Page Active ✓" : "Fit to 1 Page"}</span>
           </button>
 
           <select

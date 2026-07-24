@@ -53,7 +53,7 @@ export default function ResumePreview({
     showPageNumbers: true,
   };
 
-  const fit = settings.fitToOnePage;
+  const fit = settings.fitToOnePage !== false;
 
   const previewStyle: React.CSSProperties = {
     fontFamily: `"${settings.fontFamily}", ui-sans-serif, system-ui, sans-serif`,

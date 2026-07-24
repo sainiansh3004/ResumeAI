@@ -41,7 +41,10 @@ export default function RegisterPage() {
       if (res.requireOtp || res.success) {
         setStep("otp");
         setTimer(60);
-        setSuccessMsg(`We sent a 6-digit OTP to ${formData.email}`);
+        setSuccessMsg(res.message || `We sent a 6-digit OTP to ${formData.email}`);
+        if (res.debugOtp) {
+          setOtp(res.debugOtp);
+        }
       }
     } catch (err: any) {
       setError(
@@ -85,6 +88,9 @@ export default function RegisterPage() {
       const res = await resendOtp({ email: formData.email });
       setTimer(60);
       setSuccessMsg(res.message || "A fresh OTP has been sent to your email.");
+      if (res.debugOtp) {
+        setOtp(res.debugOtp);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to resend OTP.");
     } finally {

@@ -73,7 +73,11 @@ export default function ResumePreview({
         className="flex w-full justify-center overflow-y-auto bg-gray-200 p-8"
         style={previewStyle}
       >
-        <A4Container padding={containerPadding} fitToOnePage={fit}>
+        <A4Container
+          padding={containerPadding}
+          paperSize={settings.paperSize || "a4"}
+          fitToOnePage={fit}
+        >
           {resume.template === "modern" && (
             <ModernTemplate resume={resume} />
           )}

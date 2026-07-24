@@ -1,5 +1,5 @@
 "use client";
-import { Resume, ResumeSettings } from "@/types/resume";
+import { Resume, ResumeSettings, PaperSize } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles } from "lucide-react";
@@ -570,6 +570,31 @@ const handleSettingsChange = (
             <Sparkles className="h-3.5 w-3.5" />
             <span>{resume.settings?.fitToOnePage ? "1-Page Active ✓" : "Fit to 1 Page"}</span>
           </button>
+
+          <select
+            value={resume.settings?.paperSize || "a4"}
+            onChange={(e) => {
+              handleSettingsChange({
+                ...(resume.settings || {
+                  fontFamily: "Inter",
+                  fontSize: "md",
+                  lineHeight: "normal",
+                  margin: "normal",
+                  accentColor: "",
+                  showPageNumbers: true,
+                }),
+                paperSize: e.target.value as PaperSize,
+              });
+            }}
+            title="Paper Sheet Size Format"
+            className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:border-blue-500 focus:outline-none cursor-pointer"
+          >
+            <option value="a4">📄 A4 Sheet</option>
+            <option value="letter">📄 US Letter</option>
+            <option value="legal">📄 US Legal (Long)</option>
+            <option value="executive">📄 Executive</option>
+            <option value="a3">📄 A3 Extended</option>
+          </select>
 
           <button
             onClick={undo}

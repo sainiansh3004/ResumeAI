@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { ResumeSettings } from "@/types/resume";
-import { Type, AlignVerticalSpaceAround, Maximize, Hash } from "lucide-react";
+import { ResumeSettings, PaperSize } from "@/types/resume";
+import { Type, AlignVerticalSpaceAround, Maximize, Hash, FileText } from "lucide-react";
 
 const FONT_OPTIONS = [
   { value: "Inter", label: "Inter" },
@@ -15,6 +15,14 @@ const FONT_OPTIONS = [
   { value: "Source Sans 3", label: "Source Sans 3" },
   { value: "Nunito", label: "Nunito" },
   { value: "Poppins", label: "Poppins" },
+];
+
+const PAPER_SIZE_OPTIONS: { value: PaperSize; label: string; desc: string }[] = [
+  { value: "a4", label: "A4 Standard", desc: "210 × 297 mm" },
+  { value: "letter", label: "US Letter", desc: "8.5 × 11 in" },
+  { value: "legal", label: "US Legal (Long)", desc: "8.5 × 14 in" },
+  { value: "executive", label: "Executive", desc: "7.25 × 10.5 in" },
+  { value: "a3", label: "A3 Extended", desc: "297 × 420 mm" },
 ];
 
 const FONT_SIZE_OPTIONS: { value: ResumeSettings["fontSize"]; label: string }[] = [
@@ -78,6 +86,25 @@ export default function LayoutStyleEditor({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
+        {/* Paper Size / Sheet Format */}
+        <div className="col-span-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+            <FileText className="h-3.5 w-3.5" />
+            Paper Sheet Size
+          </label>
+          <select
+            value={settings.paperSize || "a4"}
+            onChange={(e) => update({ paperSize: e.target.value as PaperSize })}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition cursor-pointer"
+          >
+            {PAPER_SIZE_OPTIONS.map((paper) => (
+              <option key={paper.value} value={paper.value}>
+                {paper.label} — {paper.desc}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Font Family */}
         <div className="col-span-2">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">

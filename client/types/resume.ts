@@ -127,11 +127,14 @@ export interface Interest {
 // Resume Settings
 // ==========================
 
+export type PaperSize = "a4" | "letter" | "legal" | "a3" | "executive";
+
 export interface ResumeSettings {
   fontFamily: string;
   fontSize: "sm" | "md" | "lg";
   lineHeight: "snug" | "normal" | "relaxed";
   margin: "compact" | "normal" | "spacious";
+  paperSize?: PaperSize;
   accentColor: string; // custom hex color or predefined key
   showPageNumbers: boolean;
   fitToOnePage?: boolean;

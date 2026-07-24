@@ -50,9 +50,32 @@ export default function LayoutStyleEditor({
 
   return (
     <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-6">
-      <h3 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">
-        Typography & Layout
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+          Typography & Layout
+        </h3>
+
+        {/* Fit to 1 Page Toggle */}
+        <button
+          type="button"
+          onClick={() =>
+            update({
+              fitToOnePage: !settings.fitToOnePage,
+              fontSize: !settings.fitToOnePage ? "sm" : settings.fontSize,
+              lineHeight: !settings.fitToOnePage ? "snug" : settings.lineHeight,
+              margin: !settings.fitToOnePage ? "compact" : settings.margin,
+            })
+          }
+          className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+            settings.fitToOnePage
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 shadow-blue-500/20"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+          }`}
+        >
+          <span>⚡ Fit to 1 Page</span>
+          {settings.fitToOnePage && <span>✓</span>}
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Font Family */}

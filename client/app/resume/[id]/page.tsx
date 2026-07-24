@@ -2,7 +2,7 @@
 import { Resume, ResumeSettings } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp } from "lucide-react";
+import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles } from "lucide-react";
 import { useUndoRedo } from "@/utils/useUndoRedo";
 
 import { getResumeById, updateResume } from "@/services/resumeService";
@@ -537,9 +537,38 @@ const handleSettingsChange = (
         <div className="flex gap-2">
           <button
             onClick={downloadPDF}
-            className="rounded-lg bg-blue-600 px-5 py-2 text-white transition hover:bg-blue-700 font-medium text-sm flex items-center gap-1 shadow-sm"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 font-medium text-sm flex items-center gap-1 shadow-sm cursor-pointer"
           >
             Download PDF
+          </button>
+
+          <button
+            onClick={() => {
+              const currentFit = resume.settings?.fitToOnePage;
+              handleSettingsChange({
+                ...(resume.settings || {
+                  fontFamily: "Inter",
+                  fontSize: "md",
+                  lineHeight: "normal",
+                  margin: "normal",
+                  accentColor: "",
+                  showPageNumbers: true,
+                }),
+                fitToOnePage: !currentFit,
+                fontSize: !currentFit ? "sm" : "md",
+                lineHeight: !currentFit ? "snug" : "normal",
+                margin: !currentFit ? "compact" : "normal",
+              });
+            }}
+            title="Toggle 1-Page Resume Layout"
+            className={`rounded-lg px-3 py-2 transition font-bold text-xs flex items-center gap-1 cursor-pointer border ${
+              resume.settings?.fitToOnePage
+                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 shadow-sm"
+                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>{resume.settings?.fitToOnePage ? "1-Page Active ✓" : "Fit to 1 Page"}</span>
           </button>
 
           <button

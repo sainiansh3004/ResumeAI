@@ -134,6 +134,7 @@ export interface ResumeSettings {
   margin: "compact" | "normal" | "spacious";
   accentColor: string; // custom hex color or predefined key
   showPageNumbers: boolean;
+  fitToOnePage?: boolean;
 }
 
 // ==========================

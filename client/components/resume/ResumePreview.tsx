@@ -52,13 +52,15 @@ export default function ResumePreview({
     showPageNumbers: true,
   };
 
+  const fit = settings.fitToOnePage;
+
   const previewStyle: React.CSSProperties = {
     fontFamily: `"${settings.fontFamily}", ui-sans-serif, system-ui, sans-serif`,
-    fontSize: FONT_SIZE_MAP[settings.fontSize] || "14px",
-    lineHeight: LINE_HEIGHT_MAP[settings.lineHeight] || "1.5",
+    fontSize: fit ? "11.5px" : FONT_SIZE_MAP[settings.fontSize] || "14px",
+    lineHeight: fit ? "1.25" : LINE_HEIGHT_MAP[settings.lineHeight] || "1.5",
   };
 
-  const containerPadding = MARGIN_MAP[settings.margin] || "40px";
+  const containerPadding = fit ? "20px" : MARGIN_MAP[settings.margin] || "40px";
 
   return (
     <>
@@ -71,7 +73,7 @@ export default function ResumePreview({
         className="flex w-full justify-center overflow-y-auto bg-gray-200 p-8"
         style={previewStyle}
       >
-        <A4Container padding={containerPadding}>
+        <A4Container padding={containerPadding} fitToOnePage={fit}>
           {resume.template === "modern" && (
             <ModernTemplate resume={resume} />
           )}

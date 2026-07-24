@@ -28,6 +28,7 @@ export default function A4Container({
   fitToOnePage = false,
 }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
   const dimensions = PAPER_DIMENSIONS[paperSize] || PAPER_DIMENSIONS.a4;
@@ -38,33 +39,55 @@ export default function A4Container({
       return;
     }
 
-    const contentHeight = contentRef.current.scrollHeight;
-    const targetHeight = dimensions.height;
+    // Force unscaled height check
+    const inner = contentRef.current;
+    const currentTransform = inner.style.transform;
+    const currentZoom = (inner.style as any).zoom;
+    inner.style.transform = "none";
+    (inner.style as any).zoom = "1";
+
+    const contentHeight = inner.scrollHeight || inner.offsetHeight;
+    const targetHeight = dimensions.height - (padding ? parseInt(padding, 10) * 2 : 48);
+
+    inner.style.transform = currentTransform;
+    (inner.style as any).zoom = currentZoom;
 
     if (contentHeight > targetHeight) {
-      const calculatedScale = Math.max(0.68, targetHeight / (contentHeight + 20));
+      const calculatedScale = Math.min(1, targetHeight / (contentHeight + 5));
       setScale(calculatedScale);
     } else {
       setScale(1);
     }
-  }, [children, fitToOnePage, paperSize, dimensions.height]);
+  }, [children, fitToOnePage, paperSize, dimensions.height, padding]);
 
   return (
     <div
-      className="bg-white shadow-2xl transition-all duration-300 relative box-border mx-auto print:shadow-none print:m-0"
+      ref={containerRef}
+      className={`bg-white shadow-2xl transition-all duration-300 relative box-border mx-auto print:shadow-none print:m-0 ${
+        fitToOnePage ? "fit-one-page-print" : ""
+      }`}
       style={{
         width: `${dimensions.width}px`,
         minHeight: `${dimensions.height}px`,
         maxHeight: fitToOnePage ? `${dimensions.height}px` : "none",
-        overflow: fitToOnePage ? "hidden" : "visible",
-        padding: padding || "32px",
+        height: fitToOnePage ? `${dimensions.height}px` : "auto",
+        overflow: "hidden",
+        padding: padding || "24px",
       }}
     >
       <div
         ref={contentRef}
-        className="w-full origin-top transition-transform duration-300"
+        className={`w-full origin-top transition-all duration-300 ${
+          fitToOnePage ? "one-page-condensed" : ""
+        }`}
         style={{
-          transform: fitToOnePage && scale < 1 ? `scale(${scale})` : "none",
+          ...(fitToOnePage && scale < 1
+            ? {
+                zoom: scale,
+                transform: `scale(${scale})`,
+                transformOrigin: "top center",
+              }
+            : {}),
         }}
       >
         {children}

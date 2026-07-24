@@ -26,6 +26,49 @@ body {
 }
 
 /* ===========================
+   ONE-PAGE RESUME CONDENSED MODE
+=========================== */
+
+.one-page-condensed {
+  font-size: 0.88em !important;
+  line-height: 1.28 !important;
+}
+
+.one-page-condensed section {
+  margin-top: 0.4rem !important;
+  margin-bottom: 0.4rem !important;
+}
+
+.one-page-condensed h1 {
+  font-size: 1.65rem !important;
+  margin-bottom: 0.2rem !important;
+}
+
+.one-page-condensed h2 {
+  font-size: 0.82rem !important;
+  padding-bottom: 0.15rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+.one-page-condensed header {
+  padding-bottom: 0.4rem !important;
+  margin-bottom: 0.4rem !important;
+}
+
+.one-page-condensed p,
+.one-page-condensed div,
+.one-page-condensed li {
+  line-height: 1.28 !important;
+}
+
+.one-page-condensed .space-y-5 > * + *,
+.one-page-condensed .space-y-4 > * + *,
+.one-page-condensed .space-y-3 > * + *,
+.one-page-condensed .space-y-2 > * + * {
+  margin-top: 0.35rem !important;
+}
+
+/* ===========================
    PRINT ONLY RESUME (1-PAGE STRICT)
 =========================== */
 

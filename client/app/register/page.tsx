@@ -1,30 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { registerUser, verifyOtp, resendOtp } from "@/services/authService";
+import { registerUser } from "@/services/authService";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"register" | "otp">("register");
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [timer, setTimer] = useState(60);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (step === "otp" && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [step, timer]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,11 +24,15 @@ export default function RegisterPage() {
       setError("");
       setSuccessMsg("");
       const res = await registerUser(formData);
-      if (res.requireOtp || res.success) {
-        setStep("otp");
-        setTimer(60);
-        setOtp("");
-        setSuccessMsg(res.message || `We sent a 6-digit OTP to ${formData.email}. Please check your Inbox, Spam, and Promotions folder.`);
+      if (res.token) {
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("user", JSON.stringify(res.user));
+        setSuccessMsg("Account created successfully! Redirecting...");
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 500);
+      } else {
+        setSuccessMsg(res.message || "Account created successfully!");
       }
     } catch (err: any) {
       setError(
@@ -52,45 +42,6 @@ export default function RegisterPage() {
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVerifyOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp || otp.trim().length !== 6) {
-      setError("Please enter the complete 6-digit OTP code.");
-      return;
-    }
-    try {
-      setLoading(true);
-      setError("");
-      setSuccessMsg("");
-      const res = await verifyOtp({ email: formData.email, otp: otp.trim() });
-      if (res.success && res.token) {
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("user", JSON.stringify(res.user));
-        window.location.href = "/dashboard";
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "OTP verification failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    try {
-      setResending(true);
-      setError("");
-      setSuccessMsg("");
-      const res = await resendOtp({ email: formData.email });
-      setTimer(60);
-      setOtp("");
-      setSuccessMsg(res.message || "A fresh OTP has been sent to your email.");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to resend OTP.");
-    } finally {
-      setResending(false);
     }
   };
 
@@ -109,12 +60,10 @@ export default function RegisterPage() {
             R
           </div>
           <h1 className="text-2xl font-black text-gray-950 tracking-tight">
-            {step === "register" ? "Create your account" : "Verify Your Email"}
+            Create your account
           </h1>
           <p className="text-sm text-gray-500">
-            {step === "register"
-              ? "Start building professional resumes for free"
-              : `Enter the OTP sent to ${formData.email}`}
+            Start building professional resumes for free
           </p>
         </div>
 
@@ -132,117 +81,64 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {step === "register" ? (
-            <form onSubmit={handleRegisterSubmit} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
+          <form onSubmit={handleRegisterSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Create a password (min. 6 chars)"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Create a password (min. 6 chars)"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              />
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
-                }}
-              >
-                {loading ? "Sending OTP..." : "Continue → Send Verification OTP"}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtpSubmit} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  6-Digit OTP Code
-                </label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  placeholder="123456"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
-                }}
-              >
-                {loading ? "Verifying..." : "Verify OTP & Continue →"}
-              </button>
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep("register")}
-                  className="text-xs font-semibold text-gray-500 hover:text-gray-700"
-                >
-                  ← Change Details
-                </button>
-
-                <button
-                  type="button"
-                  disabled={resending || timer > 0}
-                  onClick={handleResendOtp}
-                  className="text-xs font-bold text-blue-600 hover:underline disabled:opacity-50 disabled:no-underline"
-                >
-                  {resending
-                    ? "Sending..."
-                    : timer > 0
-                    ? `Resend OTP in ${timer}s`
-                    : "Resend OTP"}
-                </button>
-              </div>
-            </form>
-          )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+              }}
+            >
+              {loading ? "Creating Account..." : "Create Account →"}
+            </button>
+          </form>
 
           <p className="text-center text-xs text-gray-500">
             Already have an account?{" "}

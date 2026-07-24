@@ -22,7 +22,7 @@ const registerUser = async (req, res) => {
 
     let existingUser = await User.findOne({ email });
 
-    if (existingUser && existingUser.isVerified) {
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: "User with this email already exists",
@@ -30,49 +30,45 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      isVerified: true,
+    });
 
-    if (existingUser && !existingUser.isVerified) {
-      existingUser.name = name;
-      existingUser.password = hashedPassword;
-      existingUser.otp = otp;
-      existingUser.otpExpires = otpExpires;
-      await existingUser.save();
-    } else {
-      await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        isVerified: false,
-        otp,
-        otpExpires,
-      });
-    }
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    // Send Verification Email in background for 0-second instant response
+    // Send Welcome Email asynchronously in background
     sendEmail({
       to: email,
-      subject: "ResumeAI - Verify Your Email Address",
-      text: `Your OTP for ResumeAI email verification is: ${otp}. It will expire in 10 minutes.`,
+      subject: "Welcome to ResumeAI! 🚀",
+      text: `Hi ${name}, welcome to ResumeAI! Start building your professional resumes today.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-          <h2 style="color: #2563eb; text-align: center;">ResumeAI Email Verification</h2>
+          <h2 style="color: #2563eb; text-align: center;">Welcome to ResumeAI! 🚀</h2>
           <p>Hi <strong>${name}</strong>,</p>
-          <p>Thank you for signing up for ResumeAI! Please use the OTP code below to verify your email address:</p>
-          <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
-          </div>
-          <p style="color: #6b7280; font-size: 14px;">This OTP will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+          <p>Thank you for joining ResumeAI! Your account is active and ready to use.</p>
+          <p>Start building ATS-optimized professional resumes for free right away!</p>
         </div>
       `,
-    }).catch((e) => console.error("Background sendEmail error:", e));
+    }).catch((e) => console.error("Welcome email error:", e));
 
     res.status(201).json({
       success: true,
-      requireOtp: true,
-      message: `Verification OTP sent to ${email}. Please check your email inbox.`,
-      email,
+      message: "Account created successfully!",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: true,
+        plan: user.plan || "free",
+      },
     });
   } catch (error) {
     console.error("Register Error:", error);

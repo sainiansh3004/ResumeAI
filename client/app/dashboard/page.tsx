@@ -316,7 +316,7 @@ function DashboardContent() {
       </header>
 
       {/* Hero Stats Grid */}
-      <div className="max-w-6xl w-full mx-auto px-6 pt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="max-w-6xl w-full mx-auto px-6 pt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Resumes</span>
@@ -336,16 +336,6 @@ function DashboardContent() {
           </div>
           <div className="h-12 w-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shadow-inner">
             <Award className="h-6 w-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Profile Hits</span>
-            <div className="text-2xl font-black text-gray-900">128 views</div>
-          </div>
-          <div className="h-12 w-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shadow-inner">
-            <TrendingUp className="h-6 w-6" />
           </div>
         </div>
 

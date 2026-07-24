@@ -14,9 +14,9 @@ const getTransporters = () => {
     nodemailer.createTransport({
       service: "gmail",
       auth: { user, pass },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
-      socketTimeout: 4000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
     }),
     // 2. Direct SMTP port 465 SSL
     nodemailer.createTransport({
@@ -24,9 +24,9 @@ const getTransporters = () => {
       port: 465,
       secure: true,
       auth: { user, pass },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
-      socketTimeout: 4000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
       tls: { rejectUnauthorized: false },
     }),
     // 3. Direct SMTP port 587 STARTTLS
@@ -35,9 +35,9 @@ const getTransporters = () => {
       port: 587,
       secure: false,
       auth: { user, pass },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
-      socketTimeout: 4000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
       tls: { rejectUnauthorized: false },
     }),
   ];

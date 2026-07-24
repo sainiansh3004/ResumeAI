@@ -313,36 +313,32 @@ export default function AiSuite({ resume, onUpdateResume, onNavigateToSection }:
     setLoading(true);
     try {
       let updatedData: Partial<Resume> = {};
+      const targetRole = targetJobTitle || resume.personalInfo?.headline || "Software Engineer";
 
-      // 1. Generate summary if missing or short (< 30 words)
-      const currentSummaryWords = resume.personalInfo?.summary?.split(/\s+/).filter(Boolean).length || 0;
-      if (currentSummaryWords < 30) {
-        const sumRes = await generateSummary(resume);
-        if (sumRes?.success && sumRes.summary) {
-          updatedData.personalInfo = {
-            ...resume.personalInfo,
-            summary: sumRes.summary,
-          };
-        }
+      // 1. Generate/Refine AI summary unconditionally
+      const sumRes = await generateSummary(resume);
+      if (sumRes?.success && sumRes.summary) {
+        updatedData.personalInfo = {
+          ...resume.personalInfo,
+          summary: sumRes.summary,
+        };
       }
 
-      // 2. Recommend & add skills if skill count < 10
+      // 2. Recommend & merge top industry skills (expand up to 15 skills)
       const currentSkills = resume.skills || [];
-      if (currentSkills.length < 10) {
-        const skillRes = await recommendSkills(currentSkills, targetJobTitle || resume.personalInfo?.headline || "Software Engineer");
-        if (skillRes?.success && Array.isArray(skillRes.skills)) {
-          const mergedSkills = Array.from(new Set([...currentSkills, ...skillRes.skills])).slice(0, 12);
-          updatedData.skills = mergedSkills;
-        }
+      const skillRes = await recommendSkills(currentSkills, targetRole);
+      if (skillRes?.success && Array.isArray(skillRes.skills)) {
+        const mergedSkills = Array.from(new Set([...currentSkills, ...skillRes.skills])).slice(0, 15);
+        updatedData.skills = mergedSkills;
       }
 
-      // 3. Rewrite/optimize work experience descriptions if present
+      // 3. Rewrite/optimize work experience descriptions unconditionally
       if (resume.experience && resume.experience.length > 0) {
         const updatedExp = await Promise.all(
           resume.experience.map(async (exp) => {
             if (exp.description && exp.description.trim()) {
               try {
-                const optRes = await optimizeExperience(exp.description, targetJobTitle || exp.position || "");
+                const optRes = await optimizeExperience(exp.description, targetRole || exp.position || "");
                 if (optRes?.success && optRes.optimized) {
                   return { ...exp, description: optRes.optimized };
                 }
@@ -356,11 +352,31 @@ export default function AiSuite({ resume, onUpdateResume, onNavigateToSection }:
         updatedData.experience = updatedExp;
       }
 
+      // 4. Optimize project descriptions unconditionally
+      if (resume.projects && resume.projects.length > 0) {
+        const updatedProjects = await Promise.all(
+          resume.projects.map(async (proj) => {
+            if (proj.description && proj.description.trim()) {
+              try {
+                const optRes = await optimizeExperience(proj.description, targetRole || proj.title || "");
+                if (optRes?.success && optRes.optimized) {
+                  return { ...proj, description: optRes.optimized };
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            return proj;
+          })
+        );
+        updatedData.projects = updatedProjects;
+      }
+
       if (Object.keys(updatedData).length > 0) {
         onUpdateResume(updatedData);
-        alert("🚀 1-Click ATS Booster applied! Your summary, skills, and experience bullets have been enhanced for maximum ATS ranking.");
+        alert("🚀 1-Click ATS Booster applied! Your summary, skills, experience, and project descriptions have been enhanced for maximum ATS ranking.");
       } else {
-        alert("Your resume is already highly optimized!");
+        alert("Your resume is fully optimized.");
       }
     } catch (err: any) {
       console.error("ATS Booster Error:", err);

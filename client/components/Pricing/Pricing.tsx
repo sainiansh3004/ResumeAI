@@ -347,20 +347,13 @@ export default function Pricing() {
 
             <div className="space-y-3 mt-8">
               <button
-                onClick={handleInitiatePremium}
-                className="w-full py-3.5 text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
-              >
-                👑 Verify Real Email & Activate Premium — {billingCycle === "yearly" ? "₹499/yr" : "₹299/mo"}
-              </button>
-
-              <button
                 onClick={handleProUpgrade}
                 disabled={loading}
-                className="w-full py-2.5 text-center bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-50 block"
+                className="w-full py-3.5 text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20 cursor-pointer disabled:opacity-50 block"
               >
                 {loading
                   ? "Opening Payment Gateway..."
-                  : `Pay via Razorpay / Card`}
+                  : `Upgrade to Pro — ${billingCycle === "yearly" ? "₹499/yr" : "₹299/mo"}`}
               </button>
 
               <button
@@ -373,14 +366,14 @@ export default function Pricing() {
                   }
                   setShowUpiModal(true);
                 }}
-                className="w-full py-2.5 text-center bg-purple-900/60 hover:bg-purple-900 text-purple-200 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3 text-center bg-purple-900/60 hover:bg-purple-900 text-purple-200 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-2"
               >
                 📲 Pay via PhonePe / GPay / UPI QR Code
               </button>
             </div>
 
             <p className="text-[10px] text-gray-400 text-center mt-3 font-medium">
-              Real email verification required to unlock Premium access.
+              Instant activation via PhonePe, Paytm, GPay, or Razorpay
             </p>
           </div>
         </div>
@@ -449,78 +442,6 @@ export default function Pricing() {
                 className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-500/20 disabled:opacity-50 cursor-pointer"
               >
                 {verifyingUpi ? "Verifying Payment..." : "✓ I Have Paid — Unlock Pro Access"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Real Email Premium Verification Modal */}
-      {showEmailModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-6 shadow-2xl relative border border-gray-100">
-            <button
-              onClick={() => setShowEmailModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg cursor-pointer"
-            >
-              ✕
-            </button>
-
-            <div className="text-center space-y-2">
-              <span className="inline-block text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                👑 Real Email Verification Required
-              </span>
-              <h3 className="text-xl font-black text-gray-950">
-                Verify Real Email for Premium
-              </h3>
-              <p className="text-xs text-gray-500">
-                Premium activation requires verifying your real email. We sent a 6-digit verification code to your inbox.
-              </p>
-            </div>
-
-            {otpError && (
-              <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 font-medium text-center">
-                {otpError}
-              </div>
-            )}
-
-            {otpSuccess && (
-              <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3 font-medium text-center">
-                {otpSuccess}
-              </div>
-            )}
-
-            <form onSubmit={handleVerifyPremiumOtpSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
-                  6-Digit Verification Code
-                </label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  placeholder="123456"
-                  value={premiumOtp}
-                  onChange={(e) => setPremiumOtp(e.target.value.replace(/[^0-9]/g, ""))}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] focus:outline-none focus:border-blue-600 transition"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={verifyingOtp}
-                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20 disabled:opacity-50 cursor-pointer"
-              >
-                {verifyingOtp ? "Verifying Real Email..." : "✓ Verify Real Email & Activate Premium 👑"}
-              </button>
-
-              <button
-                type="button"
-                disabled={sendingOtp}
-                onClick={handleInitiatePremium}
-                className="w-full text-center text-xs font-bold text-blue-600 hover:underline disabled:opacity-50 cursor-pointer"
-              >
-                {sendingOtp ? "Sending code..." : "Resend Code to Email"}
               </button>
             </form>
           </div>

@@ -4,10 +4,10 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api
 
 const getToken = () => localStorage.getItem("token");
 
-export const createRazorpayOrder = async () => {
+export const createRazorpayOrder = async (planType: "monthly" | "yearly" = "yearly") => {
   const res = await axios.post(
     `${API_URL}/razorpay-order`,
-    {},
+    { planType },
     {
       headers: {
         Authorization: `Bearer ${getToken()}`,

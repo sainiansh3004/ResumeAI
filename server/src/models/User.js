@@ -28,6 +28,31 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    otp: {
+      type: String,
+      default: null,
+    },
+
+    otpExpires: {
+      type: Date,
+      default: null,
+    },
+
+    resetOtp: {
+      type: String,
+      default: null,
+    },
+
+    resetOtpExpires: {
+      type: Date,
+      default: null,
+    },
+
     stripeCustomerId: {
       type: String,
       default: "",

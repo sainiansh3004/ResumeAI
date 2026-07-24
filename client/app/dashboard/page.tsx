@@ -1,13 +1,15 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getMyResumes,
   createResume,
+  updateResume,
   deleteResume,
   duplicateResume,
 } from "@/services/resumeService";
+import { parsePdfResume } from "@/services/aiService";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/services/billingService";
 import PortfolioCustomizer from "@/components/portfolio/PortfolioCustomizer";
 import {
@@ -24,6 +26,7 @@ import {
   Check,
   RefreshCw,
   CreditCard,
+  Upload,
 } from "lucide-react";
 
 interface User {
@@ -64,6 +67,8 @@ function DashboardContent() {
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const dashboardFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -108,6 +113,42 @@ function DashboardContent() {
     } catch (error) {
       console.error(error);
       alert("Failed to create resume");
+    }
+  };
+
+  const handleImportDashboardResume = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPdf(true);
+    try {
+      if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
+        const parseRes = await parsePdfResume(file);
+        if (parseRes.success && parseRes.resume) {
+          const parsed = parseRes.resume;
+          const createdRes = await createResume(parsed.title || "Uploaded PDF Resume");
+          const resumeId = createdRes.resume._id;
+          await updateResume(resumeId, parsed);
+          router.push(`/resume/${resumeId}`);
+          return;
+        } else {
+          alert("Failed to parse PDF resume.");
+        }
+      } else {
+        const text = await file.text();
+        const json = JSON.parse(text);
+        const createdRes = await createResume(json.title || "Imported JSON Resume");
+        const resumeId = createdRes.resume._id;
+        await updateResume(resumeId, json);
+        router.push(`/resume/${resumeId}`);
+        return;
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to import resume file. Make sure it has readable text.");
+    } finally {
+      setUploadingPdf(false);
+      if (e.target) e.target.value = "";
     }
   };
 
@@ -340,13 +381,39 @@ function DashboardContent() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-extrabold text-gray-900">My Saved Resumes</h2>
-            <button
-              onClick={handleCreateResume}
-              className="px-4.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-md shadow-blue-100"
-            >
-              <Plus className="h-4 w-4" />
-              Create Resume
-            </button>
+            <div className="flex items-center gap-2.5">
+              <input
+                type="file"
+                ref={dashboardFileInputRef}
+                onChange={handleImportDashboardResume}
+                accept=".json,.pdf,application/json,application/pdf"
+                className="hidden"
+              />
+              <button
+                onClick={() => dashboardFileInputRef.current?.click()}
+                disabled={uploadingPdf}
+                className="px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                {uploadingPdf ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
+                    <span>Parsing PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 text-blue-600" />
+                    <span>Upload Resume (PDF/JSON)</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleCreateResume}
+                className="px-4.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-md shadow-blue-100"
+              >
+                <Plus className="h-4 w-4" />
+                Create Resume
+              </button>
+            </div>
           </div>
 
           {resumes.length === 0 ? (
@@ -457,27 +524,37 @@ function DashboardContent() {
               </ul>
             </div>
 
-            <button
-              onClick={handleUpgradeToPro}
-              disabled={upgrading}
-              className="w-full py-3.5 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5"
-              style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
-            >
-              {upgrading ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  Opening Checkout Gateway...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="h-4 w-4" />
-                  Pay ₹999 (UPI / Cards)
-                </>
-              )}
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={handleUpgradeToPro}
+                disabled={upgrading}
+                className="w-full py-3.5 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5"
+                style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
+              >
+                {upgrading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Opening Checkout Gateway...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Pay via Gateway — ₹499/yr
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUpgradeToPro}
+                className="w-full py-3 text-center bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-purple-500/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                📲 Pay via PhonePe / GPay / UPI QR Code
+              </button>
+            </div>
 
             <p className="text-center text-[10px] text-gray-400">
-              Secure payment processed via Razorpay.
+              Instant activation via PhonePe, GPay, Paytm, or Cards.
             </p>
           </div>
         </div>

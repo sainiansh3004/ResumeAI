@@ -2,10 +2,11 @@
 import { Resume, ResumeSettings } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Undo, Redo, Upload, Download } from "lucide-react";
+import { Undo, Redo, Upload, Download, RefreshCw } from "lucide-react";
 import { useUndoRedo } from "@/utils/useUndoRedo";
 
 import { getResumeById, updateResume } from "@/services/resumeService";
+import { parsePdfResume } from "@/services/aiService";
 
 import ResumeForm from "@/components/resume/ResumeForm";
 import ResumePreview from "@/components/resume/ResumePreview";
@@ -71,6 +72,7 @@ export default function ResumeBuilder() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);
   const [sidebarMode, setSidebarMode] = useState<"edit" | "ai">("edit");
+  const [importingFile, setImportingFile] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,12 +90,53 @@ export default function ResumeBuilder() {
   };
 
   // ==========================
-  // Import JSON
+  // Import PDF or JSON
   // ==========================
-  const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check if uploaded file is PDF
+    if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
+      setImportingFile(true);
+      try {
+        const res = await parsePdfResume(file);
+        if (res.success && res.resume) {
+          const parsed = res.resume;
+          const merged: Resume = {
+            ...resume,
+            title: parsed.title || resume.title || "PDF Resume",
+            personalInfo: {
+              ...resume.personalInfo,
+              ...(parsed.personalInfo || {}),
+            },
+            education: parsed.education && parsed.education.length > 0 ? parsed.education : resume.education,
+            experience: parsed.experience && parsed.experience.length > 0 ? parsed.experience : resume.experience,
+            skills: parsed.skills && parsed.skills.length > 0 ? parsed.skills : resume.skills,
+            projects: parsed.projects && parsed.projects.length > 0 ? parsed.projects : resume.projects,
+            certifications: parsed.certifications && parsed.certifications.length > 0 ? parsed.certifications : resume.certifications,
+            achievements: parsed.achievements && parsed.achievements.length > 0 ? parsed.achievements : resume.achievements,
+            languages: parsed.languages && parsed.languages.length > 0 ? parsed.languages : resume.languages,
+            interests: parsed.interests && parsed.interests.length > 0 ? parsed.interests : resume.interests,
+          };
+          setResume(merged);
+          setSaved(false);
+          setSidebarMode("ai"); // Switch directly to AI Suite so ATS score is shown immediately!
+          alert("🎉 PDF Resume parsed successfully! Your ATS Score and detailed recommendations are now visible in the AI Suite.");
+        } else {
+          alert("Failed to parse PDF resume.");
+        }
+      } catch (err: any) {
+        console.error("PDF Parsing error:", err);
+        alert(err.response?.data?.message || "Failed to parse PDF resume. Please make sure the PDF contains readable text.");
+      } finally {
+        setImportingFile(false);
+        if (e.target) e.target.value = "";
+      }
+      return;
+    }
+
+    // JSON import fallback
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -123,11 +166,13 @@ export default function ResumeBuilder() {
           setSaved(false);
           alert("Resume data imported successfully!");
         } else {
-          alert("Invalid file format. Make sure it is a valid JSON file.");
+          alert("Invalid file format. Please upload a valid .pdf or .json resume file.");
         }
       } catch (err) {
         console.error("Failed to parse JSON file:", err);
         alert("Failed to parse JSON file.");
+      } finally {
+        if (e.target) e.target.value = "";
       }
     };
     reader.readAsText(file);
@@ -506,18 +551,28 @@ const handleSettingsChange = (
           <input
             type="file"
             ref={fileInputRef}
-            onChange={importJSON}
-            accept=".json"
+            onChange={handleImportFile}
+            accept=".json,.pdf,application/json,application/pdf"
             className="hidden"
           />
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            title="Import JSON"
-            className="rounded-lg border border-gray-200 p-2 text-gray-600 transition hover:bg-gray-50 font-medium text-sm flex items-center gap-1.5"
+            disabled={importingFile}
+            title="Import PDF or JSON Resume"
+            className="rounded-lg border border-gray-200 p-2 text-gray-600 transition hover:bg-gray-50 font-medium text-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Upload className="h-4 w-4" />
-            <span className="hidden xl:inline">Import</span>
+            {importingFile ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
+                <span className="hidden xl:inline text-blue-600 font-semibold">Parsing PDF...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 text-blue-600" />
+                <span className="hidden xl:inline">Import (PDF/JSON)</span>
+              </>
+            )}
           </button>
 
           <button

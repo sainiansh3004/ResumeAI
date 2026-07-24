@@ -152,9 +152,85 @@ Requirements:
   return callGroq(prompt);
 };
 
+// ==========================
+// Parse Resume from Text (PDF/Text)
+// ==========================
+const parseResumeFromText = async (resumeText) => {
+  const prompt = `
+You are an expert AI ATS Resume Parser. Extract and structure all relevant candidate details from the following resume text into a strict JSON object.
+
+Resume Text:
+${resumeText}
+
+Return a valid JSON object matching this exact structure:
+{
+  "title": "Resume",
+  "personalInfo": {
+    "fullName": "",
+    "headline": "",
+    "email": "",
+    "phone": "",
+    "address": "",
+    "linkedin": "",
+    "github": "",
+    "portfolio": "",
+    "summary": ""
+  },
+  "education": [
+    {
+      "college": "",
+      "degree": "",
+      "fieldOfStudy": "",
+      "startDate": "",
+      "endDate": "",
+      "gpa": ""
+    }
+  ],
+  "experience": [
+    {
+      "company": "",
+      "position": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "description": ""
+    }
+  ],
+  "skills": [],
+  "projects": [
+    {
+      "name": "",
+      "description": "",
+      "techStack": "",
+      "link": ""
+    }
+  ],
+  "certifications": [
+    {
+      "name": "",
+      "issuer": "",
+      "date": ""
+    }
+  ],
+  "achievements": [],
+  "languages": [],
+  "interests": []
+}
+
+Requirements:
+- Extract as much information as possible from the provided text.
+- Set title to the person's full name followed by 'Resume' (e.g. "John Doe Resume") if full name is found, otherwise "Uploaded Resume".
+- If a section or field is not present in the text, use an empty string "" or an empty array [].
+- Return ONLY valid raw JSON. Do not wrap in markdown code blocks (\`\`\`json).
+`;
+
+  return callGroq(prompt);
+};
+
 module.exports = {
   generateSummary,
   optimizeExperience,
   generateCoverLetter,
   recommendSkills,
+  parseResumeFromText,
 };

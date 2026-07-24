@@ -8,22 +8,31 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
+    setUnverifiedEmail("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
+      setError("");
+      setUnverifiedEmail("");
       const response = await loginUser(formData);
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
       window.location.href = "/dashboard";
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      if (err.response?.data?.requireOtp) {
+        setUnverifiedEmail(err.response?.data?.email || formData.email);
+        setError("Your email address is not verified yet. Please complete OTP verification.");
+      } else {
+        setError(err.response?.data?.message || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -32,7 +41,10 @@ export default function LoginPage() {
   return (
     <main
       className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.10) 0%, transparent 70%), #f9fafb" }}
+      style={{
+        background:
+          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.10) 0%, transparent 70%), #f9fafb",
+      }}
     >
       <div className="w-full max-w-md space-y-8">
         {/* Brand */}
@@ -47,8 +59,16 @@ export default function LoginPage() {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/80 border border-gray-100 p-8 space-y-6">
           {error && (
-            <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 font-medium">
-              {error}
+            <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 font-medium space-y-2">
+              <p>{error}</p>
+              {unverifiedEmail && (
+                <Link
+                  href="/register"
+                  className="inline-block text-xs font-bold text-blue-600 underline hover:text-blue-700"
+                >
+                  Click here to verify OTP →
+                </Link>
+              )}
             </div>
           )}
 
@@ -67,7 +87,15 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Password</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Password</label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-semibold text-blue-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 name="password"

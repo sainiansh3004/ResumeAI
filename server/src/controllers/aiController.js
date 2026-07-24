@@ -1,8 +1,10 @@
+const { PDFParse } = require("pdf-parse");
 const {
   generateSummary,
   optimizeExperience: optimizeExpService,
   generateCoverLetter: coverLetterService,
   recommendSkills: recommendSkillsService,
+  parseResumeFromText,
 } = require("../services/geminiService");
 
 // ==========================
@@ -138,9 +140,60 @@ const recommendSkills = async (req, res) => {
   }
 };
 
+// ==========================
+// Parse PDF Resume
+// ==========================
+const parseResumePdf = async (req, res) => {
+  try {
+    let extractedText = "";
+
+    if (req.file) {
+      const parser = new PDFParse({ data: req.file.buffer });
+      const parsedData = await parser.getText();
+      extractedText = parsedData.text || "";
+    } else if (req.body.text) {
+      extractedText = req.body.text;
+    }
+
+    if (!extractedText || !extractedText.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "No readable text found in PDF resume file.",
+      });
+    }
+
+    const rawResult = await parseResumeFromText(extractedText);
+
+    let parsedResume = {};
+    try {
+      const cleaned = rawResult.replace(/```json\n?/g, "").replace(/```/g, "").trim();
+      parsedResume = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("JSON parse error from AI:", e);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to format structured resume data from AI response.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      resume: parsedResume,
+    });
+  } catch (error) {
+    console.error("Parse PDF Resume Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to parse PDF resume.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   generateResumeSummary,
   optimizeExperience,
   generateCoverLetter,
   recommendSkills,
+  parseResumePdf,
 };

@@ -43,3 +43,19 @@ export const recommendSkills = async (currentSkills: string[], jobTitle: string)
   );
   return response.data;
 };
+
+export const parsePdfResume = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "multipart/form-data",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await axios.post(`${API_URL}/ai/parse-pdf`, formData, { headers });
+  return response.data;
+};

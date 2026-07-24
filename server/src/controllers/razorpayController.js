@@ -3,7 +3,6 @@ const crypto = require("crypto");
 const User = require("../models/User");
 
 // Initialize Razorpay
-// If environment keys are missing, we use placeholder keys for safety during development
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_placeholder_id",
   key_secret: process.env.RAZORPAY_KEY_SECRET || "rzp_test_placeholder_secret",
@@ -17,17 +16,22 @@ const createOrder = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
+    const { planType } = req.body || {};
+    // Monthly: ₹299 (29900 paise), Yearly: ₹499 (49900 paise)
+    const amount = planType === "monthly" ? 29900 : 49900;
+
     const options = {
-      amount: 99900, // 999.00 INR (approx $12 USD)
+      amount,
       currency: "INR",
       receipt: `receipt_order_${Date.now()}`,
       notes: {
         userId: user._id.toString(),
+        planType: planType || "yearly",
       },
     };
 
     // If using placeholder credentials, simulate order creation
-    if (process.env.RAZORPAY_KEY_ID === undefined) {
+    if (!process.env.RAZORPAY_KEY_ID) {
       return res.status(200).json({
         success: true,
         demoMode: true,

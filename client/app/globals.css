@@ -26,13 +26,25 @@ body {
 }
 
 /* ===========================
-   PRINT ONLY RESUME
+   PRINT ONLY RESUME (1-PAGE STRICT)
 =========================== */
 
 @media print {
   @page {
-    size: A4;
+    size: 210mm 297mm;
     margin: 0 !important;
+  }
+
+  html, body {
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   body * {
@@ -45,14 +57,31 @@ body {
   }
 
   #print-area {
-    position: absolute !important;
+    position: fixed !important;
     left: 0 !important;
     top: 0 !important;
-    width: 100% !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
-    overflow: visible !important;
+    box-sizing: border-box !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .fit-one-page-print {
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
   }
 
   .break-inside-avoid {
@@ -62,7 +91,8 @@ body {
 
   button,
   nav,
-  aside {
+  aside,
+  .no-print {
     display: none !important;
   }
 }

@@ -192,12 +192,68 @@ export default function ResumeBuilder() {
     reader.readAsText(file);
   };
 
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
   // ==========================
-  // Download / Print Resume
+  // Download 1-Page PDF Resume
   // ==========================
-  const downloadPDF = () => {
-    document.title = resume.title || "Resume";
-    window.print();
+  const downloadPDF = async () => {
+    const el = document.getElementById("print-area");
+    if (!el) {
+      window.print();
+      return;
+    }
+
+    try {
+      setDownloadingPDF(true);
+
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      // Render high resolution canvas (2x scale for sharp text)
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+      // Determine dimensions based on selected paper size
+      const paperSize = resume.settings?.paperSize || "a4";
+      let pdfWidth = 210; // mm
+      let pdfHeight = 297; // mm
+
+      if (paperSize === "letter") {
+        pdfWidth = 215.9;
+        pdfHeight = 279.4;
+      } else if (paperSize === "legal") {
+        pdfWidth = 215.9;
+        pdfHeight = 355.6;
+      } else if (paperSize === "executive") {
+        pdfWidth = 184.15;
+        pdfHeight = 266.7;
+      } else if (paperSize === "a3") {
+        pdfWidth = 297;
+        pdfHeight = 420;
+      }
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight],
+      });
+
+      // Fit image onto 1 page (0 margin, 100% single page)
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${resume.title || "Resume"}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed, falling back to window.print():", err);
+      window.print();
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
 useEffect(() => {
@@ -537,9 +593,20 @@ const handleSettingsChange = (
         <div className="flex gap-2">
           <button
             onClick={downloadPDF}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 font-medium text-sm flex items-center gap-1 shadow-sm cursor-pointer"
+            disabled={downloadingPDF}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 font-medium text-sm flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
           >
-            Download PDF
+            {downloadingPDF ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>Download PDF (1 Page)</span>
+              </>
+            )}
           </button>
 
           <button

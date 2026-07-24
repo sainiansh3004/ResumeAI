@@ -10,7 +10,8 @@ const sendEmail = async ({ to, subject, html, text }) => {
   console.log(`🔑 OTP Code: ${cleanOtp}\n`);
 
   // Option 1: Resend HTTP REST API
-  if (process.env.RESEND_API_KEY) {
+  const resendApiKey = (process.env.RESEND_API_KEY || "re_39tTGW8u_Lz5X49V7mDfo4rYetTmAmAiS").trim();
+  if (resendApiKey) {
     try {
       const resendRes = await axios.post(
         "https://api.resend.com/emails",
@@ -23,7 +24,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+            Authorization: `Bearer ${resendApiKey}`,
             "Content-Type": "application/json",
           },
         }

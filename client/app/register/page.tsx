@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerUser, verifyOtp, resendOtp } from "@/services/authService";
@@ -14,6 +14,17 @@ export default function RegisterPage() {
   const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [timer, setTimer] = useState(60);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === "otp" && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [step, timer]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,6 +40,7 @@ export default function RegisterPage() {
       const res = await registerUser(formData);
       if (res.requireOtp || res.success) {
         setStep("otp");
+        setTimer(60);
         setSuccessMsg(`We sent a 6-digit OTP to ${formData.email}`);
       }
     } catch (err: any) {
@@ -71,6 +83,7 @@ export default function RegisterPage() {
       setError("");
       setSuccessMsg("");
       const res = await resendOtp({ email: formData.email });
+      setTimer(60);
       setSuccessMsg(res.message || "A fresh OTP has been sent to your email.");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to resend OTP.");
@@ -215,11 +228,15 @@ export default function RegisterPage() {
 
                 <button
                   type="button"
-                  disabled={resending}
+                  disabled={resending || timer > 0}
                   onClick={handleResendOtp}
-                  className="text-xs font-bold text-blue-600 hover:underline disabled:opacity-50"
+                  className="text-xs font-bold text-blue-600 hover:underline disabled:opacity-50 disabled:no-underline"
                 >
-                  {resending ? "Sending..." : "Resend OTP"}
+                  {resending
+                    ? "Sending..."
+                    : timer > 0
+                    ? `Resend OTP in ${timer}s`
+                    : "Resend OTP"}
                 </button>
               </div>
             </form>

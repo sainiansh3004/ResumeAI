@@ -8,32 +8,25 @@ const createTransporter = () => {
     return null;
   }
 
-  if (process.env.EMAIL_SERVICE === "gmail" || (!process.env.SMTP_HOST && user.includes("@gmail.com"))) {
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: { user, pass },
-    });
-  }
-
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
+    port: parseInt(process.env.SMTP_PORT || "465"),
+    secure: process.env.SMTP_SECURE !== "false", // true for 465 SSL
     auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
 };
 
 const sendEmail = async ({ to, subject, html, text }) => {
   const transporter = createTransporter();
 
+  console.log(`\n📧 [EMAIL REQUEST] To: ${to} | Subject: ${subject}`);
+  console.log(`🔑 OTP Content: ${text || html.replace(/<[^>]*>?/gm, "")}\n`);
+
   if (!transporter) {
-    console.log("\n====================================================================");
-    console.log(`[DEV MODE] SMTP credentials not set in server/.env.`);
-    console.log(`To send REAL emails to inbox, set EMAIL_USER & EMAIL_PASS in server/.env.`);
-    console.log(`Sending MOCK email to: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`OTP Code:\n${text || html.replace(/<[^>]*>?/gm, "")}`);
-    console.log("====================================================================\n");
+    console.log(`[DEV MODE] SMTP credentials not set in server/.env. Returning MOCK email success.`);
     return { success: true, mock: true };
   }
 
@@ -47,9 +40,10 @@ const sendEmail = async ({ to, subject, html, text }) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent successfully via Nodemailer! MessageId:", info.messageId);
     return { success: true, info };
   } catch (error) {
-    console.error("Error sending real email via Nodemailer:", error);
+    console.error("❌ Error sending real email via Nodemailer:", error);
     return { success: false, error: error.message };
   }
 };

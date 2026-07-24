@@ -405,6 +405,8 @@ const getProfile = async (req, res) => {
       message: "Server Error",
     });
   }
+};
+
 // ================= SEND PREMIUM REAL EMAIL OTP =================
 const sendPremiumOtp = async (req, res) => {
   try {

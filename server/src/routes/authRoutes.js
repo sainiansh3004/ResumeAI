@@ -9,6 +9,8 @@ const {
   forgotPassword,
   resetPassword,
   getProfile,
+  sendPremiumOtp,
+  verifyPremiumOtp,
 } = require("../controllers/authController");
 
 const protect = require("../middleware/authMiddleware");
@@ -26,5 +28,9 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
 router.get("/profile", protect, getProfile);
+
+router.post("/send-premium-otp", protect, sendPremiumOtp);
+
+router.post("/verify-premium-otp", protect, verifyPremiumOtp);
 
 module.exports = router;

@@ -65,4 +65,32 @@ export const getProfile = async (token: string) => {
   return response.data;
 };
 
+// Send Premium Email Verification OTP
+export const sendPremiumOtp = async (token: string) => {
+  const response = await API.post(
+    "/send-premium-otp",
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+// Verify Premium Email Verification OTP
+export const verifyPremiumOtp = async (token: string, otp: string) => {
+  const response = await API.post(
+    "/verify-premium-otp",
+    { otp },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
 export default API;

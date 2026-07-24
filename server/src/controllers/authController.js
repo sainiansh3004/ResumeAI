@@ -405,6 +405,96 @@ const getProfile = async (req, res) => {
       message: "Server Error",
     });
   }
+// ================= SEND PREMIUM REAL EMAIL OTP =================
+const sendPremiumOtp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.premiumOtp = otp;
+    user.premiumOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    // Send real email OTP for premium activation
+    sendEmail({
+      to: user.email,
+      subject: "ResumeAI - Premium Activation Real Email Verification OTP",
+      text: `Your OTP to verify your real email and activate Premium is: ${otp}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="color: #2563eb; text-align: center;">ResumeAI Premium Activation OTP 👑</h2>
+          <p>Hi <strong>${user.name}</strong>,</p>
+          <p>Please enter the 6-digit verification code below to verify your real email and activate your Premium subscription:</p>
+          <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
+            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
+          </div>
+          <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
+        </div>
+      `,
+    }).catch((e) => console.error("Premium OTP email error:", e));
+
+    res.status(200).json({
+      success: true,
+      message: `A 6-digit Premium verification OTP has been sent to ${user.email}. Please check your inbox.`,
+    });
+  } catch (error) {
+    console.error("Send Premium OTP Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// ================= VERIFY PREMIUM REAL EMAIL OTP & UPGRADE =================
+const verifyPremiumOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    if (!otp) {
+      return res.status(400).json({ success: false, message: "OTP is required" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const cleanOtp = otp.trim();
+    if (!user.premiumOtp || user.premiumOtp !== cleanOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP code. Please check your email inbox and enter the code sent to you.",
+      });
+    }
+
+    if (user.premiumOtpExpires && new Date() > new Date(user.premiumOtpExpires)) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please click Resend Code for a fresh OTP.",
+      });
+    }
+
+    user.isPro = true;
+    user.isVerified = true;
+    user.premiumOtp = null;
+    user.premiumOtpExpires = null;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Real email verified! Premium features activated successfully! 👑",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isPro: true,
+        isVerified: true,
+      },
+    });
+  } catch (error) {
+    console.error("Verify Premium OTP Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
 
 module.exports = {
@@ -415,4 +505,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getProfile,
+  sendPremiumOtp,
+  verifyPremiumOtp,
 };

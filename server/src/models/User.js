@@ -53,6 +53,16 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    premiumOtp: {
+      type: String,
+      default: null,
+    },
+
+    premiumOtpExpires: {
+      type: Date,
+      default: null,
+    },
+
     stripeCustomerId: {
       type: String,
       default: "",

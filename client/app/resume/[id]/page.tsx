@@ -2,7 +2,7 @@
 import { Resume, ResumeSettings } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Undo, Redo, Upload, Download, RefreshCw } from "lucide-react";
+import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp } from "lucide-react";
 import { useUndoRedo } from "@/utils/useUndoRedo";
 
 import { getResumeById, updateResume } from "@/services/resumeService";
@@ -74,6 +74,7 @@ export default function ResumeBuilder() {
   const [sidebarMode, setSidebarMode] = useState<"edit" | "ai">("edit");
   const [importingFile, setImportingFile] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ==========================
@@ -516,9 +517,9 @@ const handleSettingsChange = (
   }
 
  return (
-  <div className="flex min-h-screen print:block">
-    {/* LEFT PANEL */}
-    <div className="w-1/2 shrink-0 overflow-y-auto border-r bg-white p-6 z-10 print:hidden">
+  <div className="flex h-screen overflow-hidden print:h-auto print:overflow-visible print:block">
+    {/* LEFT PANEL: Independent Scrollable Editor */}
+    <div className="w-1/2 shrink-0 h-full overflow-y-auto border-r bg-white p-6 z-10 print:hidden shadow-sm">
       <div className="mb-4 flex items-center justify-between border-b pb-4">
         <div className="flex gap-2">
           <button
@@ -654,16 +655,32 @@ const handleSettingsChange = (
       )}
     </div>
 
-    {/* RIGHT PANEL */}
-<div className="flex-1 overflow-auto bg-gray-200 print:block print:bg-white">
-  <div
-    ref={previewRef}
-    id="print-area"
-    className="mx-auto w-fit py-8"
-  >
-    <ResumePreview resume={resume} />
-  </div>
-</div>
+    {/* RIGHT PANEL: Independent Scrollable Live Preview */}
+    <div
+      ref={previewContainerRef}
+      className="flex-1 h-full overflow-y-auto bg-gray-200 p-8 print:h-auto print:overflow-visible print:bg-white relative"
+    >
+      <button
+        onClick={() => {
+          if (previewContainerRef.current) {
+            previewContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }}
+        title="Scroll Preview to Top"
+        className="sticky top-2 left-2 z-30 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-gray-300 text-gray-700 rounded-full text-xs font-bold shadow-md hover:bg-white hover:text-blue-600 transition flex items-center gap-1 cursor-pointer print:hidden"
+      >
+        <ArrowUp className="h-3.5 w-3.5" />
+        <span>Top of Preview</span>
+      </button>
+
+      <div
+        ref={previewRef}
+        id="print-area"
+        className="mx-auto w-fit pb-12"
+      >
+        <ResumePreview resume={resume} />
+      </div>
     </div>
+  </div>
 );
 }

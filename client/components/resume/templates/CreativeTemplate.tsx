@@ -135,260 +135,233 @@ export default function CreativeTemplate({ resume }: Props) {
 
           switch (sectionKey) {
             case "summary":
+              if (!resume.personalInfo.summary?.trim()) return null;
               return (
                 <section key="summary" className="mb-8">
                   <h2 className={`mb-3 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.personalInfo.summary ? (
-                    <p className="whitespace-pre-line text-gray-700">
-                      {resume.personalInfo.summary}
-                    </p>
-                  ) : (
-                    <p className="italic text-gray-400">No professional summary added yet.</p>
-                  )}
+                  <p className="whitespace-pre-line text-gray-700">
+                    {resume.personalInfo.summary}
+                  </p>
                 </section>
               );
 
             case "education":
+              if (!resume.education || resume.education.length === 0) return null;
               return (
                 <section key="education" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.education?.length > 0 ? (
-                    <div className="space-y-5">
-                      {resume.education.map((edu, index) => (
-                        <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
-                          <div className="flex justify-between">
-                            <div>
-                              <h3 className="text-lg font-semibold">
-                                {edu.degree}
-                                {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
-                              </h3>
-                              <p className={theme.primary}>{edu.college}</p>
-                              {edu.cgpa && <p className="text-gray-600">CGPA: {edu.cgpa}</p>}
-                            </div>
-                            <span className="text-gray-500">
-                              {edu.startYear}
-                              {edu.startYear && edu.endYear && " - "}
-                              {edu.endYear}
-                            </span>
+                  <div className="space-y-5">
+                    {resume.education.map((edu, index) => (
+                      <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold">
+                              {edu.degree}
+                              {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
+                            </h3>
+                            <p className={theme.primary}>{edu.college}</p>
+                            {edu.cgpa && <p className="text-gray-600">CGPA: {edu.cgpa}</p>}
                           </div>
+                          <span className="text-gray-500">
+                            {edu.startYear}
+                            {edu.startYear && edu.endYear && " - "}
+                            {edu.endYear}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No education added yet.</p>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "experience":
+              if (!resume.experience || resume.experience.length === 0) return null;
               return (
                 <section key="experience" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.experience?.length > 0 ? (
-                    <div className="space-y-5">
-                      {resume.experience.map((exp, index) => (
-                        <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
-                          <div className="flex justify-between">
-                            <div>
-                              <h3 className="text-lg font-semibold">{exp.position}</h3>
-                              <p className={theme.primary}>
-                                {exp.company}
-                                {exp.location && ` • ${exp.location}`}
-                              </p>
-                              {exp.employmentType && <p className="text-sm text-gray-500">{exp.employmentType}</p>}
-                            </div>
-                            <span className="text-gray-500">
-                              {exp.startDate}
-                              {exp.startDate && exp.endDate && " - "}
-                              {exp.endDate}
-                            </span>
+                  <div className="space-y-5">
+                    {resume.experience.map((exp, index) => (
+                      <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold">{exp.position}</h3>
+                            <p className={theme.primary}>
+                              {exp.company}
+                              {exp.location && ` • ${exp.location}`}
+                            </p>
+                            {exp.employmentType && <p className="text-sm text-gray-500">{exp.employmentType}</p>}
                           </div>
-                          {exp.description && (
-                            <p className="mt-3 whitespace-pre-line text-gray-700">{exp.description}</p>
-                          )}
+                          <span className="text-gray-500">
+                            {exp.startDate}
+                            {exp.startDate && exp.endDate && " - "}
+                            {exp.endDate}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No experience added yet.</p>
-                  )}
+                        {exp.description && (
+                          <p className="mt-3 whitespace-pre-line text-gray-700">{exp.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "skills":
+              if (!resume.skills || resume.skills.length === 0) return null;
               return (
                 <section key="skills" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.skills?.length > 0 ? (
-                    <div className="flex flex-wrap gap-3">
-                      {resume.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className={`rounded-full bg-gradient-to-r px-4 py-2 text-sm font-medium text-white ${theme.chip}`}
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No skills added yet.</p>
-                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {resume.skills.map((skill, index) => (
+                      <span
+                        key={index}
+                        className={`rounded-full bg-gradient-to-r px-4 py-2 text-sm font-medium text-white ${theme.chip}`}
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "projects":
+              if (!resume.projects || resume.projects.length === 0) return null;
               return (
                 <section key="projects" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.projects?.length > 0 ? (
-                    <div className="space-y-5">
-                      {resume.projects.map((project, index) => (
-                        <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
-                          <h3 className="text-lg font-semibold">{project.title}</h3>
-                          {project.technologies?.length > 0 && (
-                            <p className={`mt-2 text-sm ${theme.secondary}`}>
-                              {project.technologies.join(" • ")}
-                            </p>
+                  <div className="space-y-5">
+                    {resume.projects.map((project, index) => (
+                      <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
+                        <h3 className="text-lg font-semibold">{project.title}</h3>
+                        {project.technologies?.length > 0 && (
+                          <p className={`mt-2 text-sm ${theme.secondary}`}>
+                            {project.technologies.join(" • ")}
+                          </p>
+                        )}
+                        <div className="mt-3 flex gap-5 text-sm">
+                          {project.github && (
+                            <a
+                              href={project.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`${theme.secondary} underline`}
+                            >
+                              GitHub
+                            </a>
                           )}
-                          <div className="mt-3 flex gap-5 text-sm">
-                            {project.github && (
-                              <a
-                                href={project.github}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`${theme.secondary} underline`}
-                              >
-                                GitHub
-                              </a>
-                            )}
-                            {project.liveDemo && (
-                              <a
-                                href={project.liveDemo}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`${theme.secondary} underline`}
-                              >
-                                Live Demo
-                              </a>
-                            )}
-                          </div>
-                          {project.description && (
-                            <p className="mt-3 whitespace-pre-line text-gray-700">{project.description}</p>
+                          {project.liveDemo && (
+                            <a
+                              href={project.liveDemo}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`${theme.secondary} underline`}
+                            >
+                              Live Demo
+                            </a>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No projects added yet.</p>
-                  )}
+                        {project.description && (
+                          <p className="mt-3 whitespace-pre-line text-gray-700">{project.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "certifications":
+              if (!resume.certifications || resume.certifications.length === 0) return null;
               return (
                 <section key="certifications" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.certifications?.length > 0 ? (
-                    <div className="space-y-5">
-                      {resume.certifications.map((cert, index) => (
-                        <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
-                          <div className="flex justify-between">
-                            <div>
-                              <h3 className="text-lg font-semibold">{cert.name}</h3>
-                              {cert.organization && <p className={theme.primary}>{cert.organization}</p>}
-                            </div>
-                            {cert.issueDate && <span className="text-gray-500">{cert.issueDate}</span>}
+                  <div className="space-y-5">
+                    {resume.certifications.map((cert, index) => (
+                      <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold">{cert.name}</h3>
+                            {cert.organization && <p className={theme.primary}>{cert.organization}</p>}
                           </div>
+                          {cert.issueDate && <span className="text-gray-500">{cert.issueDate}</span>}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No certifications added yet.</p>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "languages":
+              if (!resume.languages || resume.languages.length === 0) return null;
               return (
                 <section key="languages" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.languages?.length > 0 ? (
-                    <div className="flex flex-wrap gap-3">
-                      {resume.languages.map((language, index) => (
-                        <span
-                          key={index}
-                          className={`rounded-full bg-gradient-to-r px-4 py-2 text-sm font-medium text-white ${theme.chip}`}
-                        >
-                          {language.name}
-                          {language.proficiency && (
-                            <span className="ml-2 opacity-90">({language.proficiency})</span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No languages added yet.</p>
-                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {resume.languages.map((language, index) => (
+                      <span
+                        key={index}
+                        className={`rounded-full bg-gradient-to-r px-4 py-2 text-sm font-medium text-white ${theme.chip}`}
+                      >
+                        {language.name}
+                        {language.proficiency && (
+                          <span className="ml-2 opacity-90">({language.proficiency})</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "achievements":
+              if (!resume.achievements || resume.achievements.length === 0) return null;
               return (
                 <section key="achievements" className="mb-8">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.achievements?.length > 0 ? (
-                    <div className="space-y-5">
-                      {resume.achievements.map((achievement, index) => (
-                        <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
-                          <h3 className="text-lg font-semibold">{achievement.title}</h3>
-                          {achievement.description && (
-                            <p className="mt-2 whitespace-pre-line text-gray-700">{achievement.description}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No achievements added yet.</p>
-                  )}
+                  <div className="space-y-5">
+                    {resume.achievements.map((achievement, index) => (
+                      <div key={index} className={`rounded-lg border p-4 ${theme.card}`}>
+                        <h3 className="text-lg font-semibold">{achievement.title}</h3>
+                        {achievement.description && (
+                          <p className="mt-2 whitespace-pre-line text-gray-700">{achievement.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "interests":
+              if (!resume.interests || resume.interests.length === 0) return null;
               return (
                 <section key="interests">
                   <h2 className={`mb-5 border-l-4 pl-3 text-2xl font-bold ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {resume.interests?.length > 0 ? (
-                    <div className="flex flex-wrap gap-3">
-                      {resume.interests.map((interest, index) => (
-                        <span
-                          key={index}
-                          className={`rounded-full bg-gradient-to-r px-4 py-2 text-sm font-medium text-white ${theme.chip}`}
-                        >
-                          {interest.name}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="italic text-gray-400">No interests added yet.</p>
-                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {resume.interests.map((interest, index) => (
+                      <span
+                        key={index}
+                        className={`rounded-full bg-gradient-to-r px-4 py-2 text-sm font-medium text-white ${theme.chip}`}
+                      >
+                        {interest.name}
+                      </span>
+                    ))}
+                  </div>
                 </section>
               );
 

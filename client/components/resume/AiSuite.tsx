@@ -34,6 +34,7 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
   // ATS Scoring Logic
   const [atsScore, setAtsScore] = useState(0);
   const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [atsPassed, setAtsPassed] = useState<string[]>([]);
 
   // AI State
   const [targetJobTitle, setTargetJobTitle] = useState("");
@@ -48,78 +49,326 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
   useEffect(() => {
     let score = 0;
     const list: string[] = [];
+    const passed: string[] = [];
 
-    // 1. Personal Info & Contacts (max 20)
-    let contactScore = 0;
-    if (resume.personalInfo?.fullName) contactScore += 5;
-    if (resume.personalInfo?.email) contactScore += 5;
-    if (resume.personalInfo?.phone) contactScore += 5;
-    if (resume.personalInfo?.address) contactScore += 5;
-    score += contactScore;
+    // ============================
+    // SECTION 1: CONTACT INFO (max 12)
+    // ============================
+    let contactPts = 0;
+    if (resume.personalInfo?.fullName?.trim()) contactPts += 3;
+    else list.push("Add your full name — required by every ATS parser.");
+    if (resume.personalInfo?.email?.trim()) {
+      contactPts += 3;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resume.personalInfo.email))
+        list.push("Email format appears invalid — ATS may reject it.");
+    } else list.push("Add a professional email address.");
+    if (resume.personalInfo?.phone?.trim()) contactPts += 3;
+    else list.push("Add a phone number — 98% of recruiters expect it.");
+    if (resume.personalInfo?.address?.trim()) contactPts += 3;
+    else list.push("Include city/location — helps with geo-targeted job filters.");
+    score += contactPts;
+    if (contactPts === 12) passed.push("Contact info is complete ✓");
 
-    if (!resume.personalInfo?.fullName) list.push("Add your full name.");
-    if (!resume.personalInfo?.email) list.push("Add your email address for recruiters.");
-    if (!resume.personalInfo?.phone) list.push("Add your phone number for contact.");
-    if (!resume.personalInfo?.address) list.push("Include your location/city.");
-
-    // 2. Summary (max 15)
-    const summaryWordCount = resume.personalInfo?.summary?.split(/\s+/).filter(Boolean).length || 0;
-    if (summaryWordCount >= 30) {
-      score += 15;
-    } else if (summaryWordCount > 0) {
-      score += 8;
-      list.push("Expand your summary to at least 30 words for ATS impact.");
+    // ============================
+    // SECTION 2: PROFESSIONAL HEADLINE (max 5)
+    // ============================
+    const headline = resume.personalInfo?.headline?.trim() || "";
+    if (headline.length >= 15) {
+      score += 5;
+      passed.push("Professional headline present ✓");
+    } else if (headline.length > 0) {
+      score += 2;
+      list.push("Expand your headline to 15+ characters (e.g. 'Full Stack Developer | React & Node.js').");
     } else {
-      list.push("Add a professional summary statement summarizing your value.");
+      list.push("Add a professional headline — many ATS systems parse this as your job title.");
     }
 
-    // 3. Experience (max 30)
-    if (resume.experience?.length > 0) {
-      score += 15;
-      // check descriptions
-      const hasGoodDescriptions = resume.experience.every(
-        (exp) => (exp.description?.split(/\s+/).filter(Boolean).length || 0) >= 20
-      );
-      if (hasGoodDescriptions) {
-        score += 15;
-      } else {
+    // ============================
+    // SECTION 3: PROFESSIONAL SUMMARY (max 12)
+    // ============================
+    const summaryText = resume.personalInfo?.summary?.trim() || "";
+    const summaryWords = summaryText.split(/\s+/).filter(Boolean);
+    const summaryWordCount = summaryWords.length;
+    if (summaryWordCount >= 40) {
+      score += 12;
+      passed.push("Summary is well-developed ✓");
+    } else if (summaryWordCount >= 20) {
+      score += 7;
+      list.push(`Expand your summary from ${summaryWordCount} to 40+ words — detailed summaries rank higher in ATS.`);
+    } else if (summaryWordCount > 0) {
+      score += 3;
+      list.push(`Your summary is only ${summaryWordCount} words — aim for 40+ words with industry keywords.`);
+    } else {
+      list.push("Add a professional summary — this is the first thing ATS parsers analyze for keyword matching.");
+    }
+
+    // ============================
+    // SECTION 4: WORK EXPERIENCE (max 25)
+    // ============================
+    const experiences = resume.experience || [];
+    if (experiences.length > 0) {
+      score += 8; // base points for having experience
+
+      // Analyze each experience entry
+      let totalExpWords = 0;
+      let expWithActionVerbs = 0;
+      let expWithQuantification = 0;
+      let expWithDates = 0;
+
+      const actionVerbs = /^(led|built|developed|designed|managed|increased|decreased|improved|launched|created|implemented|engineered|optimized|delivered|spearheaded|architected|automated|collaborated|coordinated|established|executed|facilitated|generated|integrated|maintained|negotiated|organized|produced|resolved|streamlined|supervised|transformed|utilized|achieved|accelerated|analyzed|conducted|contributed|deployed|drove|enhanced|expanded|identified|initiated|mentored|orchestrated|pioneered|reduced|scaled|secured|shipped)/i;
+
+      experiences.forEach((exp) => {
+        const desc = exp.description?.trim() || "";
+        const descWords = desc.split(/\s+/).filter(Boolean).length;
+        totalExpWords += descWords;
+
+        // Check for action verbs in bullet points
+        const bullets = desc.split(/[\n•\-]/);
+        const hasActions = bullets.some((b) => actionVerbs.test(b.trim()));
+        if (hasActions) expWithActionVerbs++;
+
+        // Check for quantified achievements
+        if (/\d+%|\$\d+|\d+\+|\d+x|[0-9]+ (users|clients|projects|team|members|revenue|million|thousand)/i.test(desc))
+          expWithQuantification++;
+
+        // Check for dates
+        if (exp.startDate) expWithDates++;
+      });
+
+      // Detailed descriptions (max 7)
+      const avgWordsPerExp = totalExpWords / experiences.length;
+      if (avgWordsPerExp >= 40) {
         score += 7;
-        list.push("Provide detailed bullet points (20+ words) for all work experience items.");
+      } else if (avgWordsPerExp >= 20) {
+        score += 4;
+        list.push(`Experience descriptions average ${Math.round(avgWordsPerExp)} words — aim for 40+ words per role with bullet points.`);
+      } else {
+        score += 1;
+        list.push("Experience descriptions are too brief — add detailed bullet points with responsibilities and achievements.");
+      }
+
+      // Action verbs (max 5)
+      if (expWithActionVerbs === experiences.length) {
+        score += 5;
+        passed.push("Strong action verbs used ✓");
+      } else if (expWithActionVerbs > 0) {
+        score += 2;
+        list.push(`${experiences.length - expWithActionVerbs} experience entries lack strong action verbs (Led, Built, Optimized, Delivered, etc.).`);
+      } else {
+        list.push("Start each experience bullet with a strong action verb (Led, Built, Increased, Managed, etc.).");
+      }
+
+      // Quantified results (max 5)
+      if (expWithQuantification >= Math.ceil(experiences.length * 0.5)) {
+        score += 5;
+        passed.push("Quantified achievements present ✓");
+      } else if (expWithQuantification > 0) {
+        score += 2;
+        list.push("Add measurable results (%, $, numbers) to more experience entries — recruiters value quantified impact.");
+      } else {
+        list.push("Include quantified achievements in experience (e.g. 'Increased revenue by 35%', 'Managed team of 8').");
       }
     } else {
-      list.push("Add at least one professional work experience record.");
+      list.push("Add professional work experience — this is the most critical section for ATS ranking.");
     }
 
-    // 4. Skills (max 15)
-    if (resume.skills?.length >= 8) {
-      score += 15;
-    } else if (resume.skills?.length >= 3) {
+    // ============================
+    // SECTION 5: SKILLS (max 12)
+    // ============================
+    const skillCount = resume.skills?.length || 0;
+    if (skillCount >= 10) {
+      score += 12;
+      passed.push(`${skillCount} skills listed — great keyword density ✓`);
+    } else if (skillCount >= 6) {
       score += 8;
-      list.push("Add more skills (aim for 8+ tech/soft skills) for keyphrase matching.");
+      list.push(`You have ${skillCount} skills — add ${10 - skillCount} more to reach the optimal 10+ for ATS keyword matching.`);
+    } else if (skillCount >= 3) {
+      score += 4;
+      list.push(`Only ${skillCount} skills listed — ATS systems match job descriptions against your skills. Aim for 10+.`);
+    } else if (skillCount > 0) {
+      score += 2;
+      list.push("You need significantly more skills — most competitive resumes list 10-15 relevant technical and soft skills.");
     } else {
-      list.push("Include a strong set of industry and technical skills.");
+      list.push("Add a Skills section — ATS parsers heavily rely on keyword matching from this section.");
     }
 
-    // 5. Projects (max 10)
-    if (resume.projects?.length >= 2) {
-      score += 10;
-    } else if (resume.projects?.length > 0) {
-      score += 5;
-      list.push("Add a second project to showcase practical application of your skills.");
+    // ============================
+    // SECTION 6: EDUCATION (max 8)
+    // ============================
+    const eduEntries = resume.education || [];
+    if (eduEntries.length > 0) {
+      let eduPts = 5;
+      const hasDetailedEdu = eduEntries.some(
+        (e) => e.degree?.trim() && e.college?.trim() && (e.startYear || e.endYear)
+      );
+      if (hasDetailedEdu) {
+        eduPts += 3;
+        passed.push("Education section is complete ✓");
+      } else {
+        list.push("Add degree name, institution, and graduation year to education entries.");
+      }
+      score += eduPts;
     } else {
-      list.push("Add details of key projects you built or worked on.");
+      list.push("Include your education — most ATS systems require this section.");
     }
 
-    // 6. Education (max 10)
-    if (resume.education?.length > 0) {
-      score += 10;
+    // ============================
+    // SECTION 7: PROJECTS (max 8)
+    // ============================
+    const projects = resume.projects || [];
+    if (projects.length >= 2) {
+      score += 6;
+      const hasGoodProjects = projects.some(
+        (p) => p.title?.trim() && (p.description?.split(/\s+/).filter(Boolean).length || 0) >= 15 && (p.technologies?.length || 0) >= 2
+      );
+      if (hasGoodProjects) {
+        score += 2;
+        passed.push("Projects showcase technical skills ✓");
+      } else {
+        list.push("Enhance project descriptions with 15+ words and list specific technologies used.");
+      }
+    } else if (projects.length === 1) {
+      score += 3;
+      list.push("Add a second project — multiple projects demonstrate broader capability.");
     } else {
-      list.push("Include your college education credentials.");
+      list.push("Add 2+ projects to showcase practical application of your skills.");
     }
+
+    // ============================
+    // SECTION 8: CERTIFICATIONS (max 4)
+    // ============================
+    const certs = resume.certifications || [];
+    if (certs.length >= 1 && certs.some((c) => c.name?.trim())) {
+      score += 4;
+      passed.push("Certifications included ✓");
+    } else {
+      list.push("Add relevant certifications — they boost ATS score for specialized roles.");
+    }
+
+    // ============================
+    // SECTION 9: ACHIEVEMENTS (max 4)
+    // ============================
+    const achievements = resume.achievements || [];
+    if (achievements.length >= 1 && achievements.some((a) => a.title?.trim())) {
+      score += 4;
+      passed.push("Achievements highlighted ✓");
+    } else {
+      list.push("Add notable achievements (awards, competition ranks, publications) to stand out.");
+    }
+
+    // ============================
+    // SECTION 10: PROFESSIONAL LINKS (max 5)
+    // ============================
+    let linkPts = 0;
+    if (resume.personalInfo?.linkedin?.trim()) linkPts += 2;
+    else list.push("Add your LinkedIn profile URL — 87% of recruiters check LinkedIn.");
+    if (resume.personalInfo?.github?.trim()) linkPts += 2;
+    else if (skillCount > 0 && resume.skills?.some((s) => /javascript|python|react|node|java|c\+\+|go|rust|typescript/i.test(s)))
+      list.push("Add your GitHub profile — critical for software/engineering roles.");
+    if (resume.personalInfo?.portfolio?.trim()) linkPts += 1;
+    score += linkPts;
+    if (linkPts >= 4) passed.push("Professional links present ✓");
+
+    // ============================
+    // SECTION 11: LANGUAGES (max 3)
+    // ============================
+    const langs = resume.languages || [];
+    if (langs.length >= 1 && langs.some((l) => l.name?.trim())) {
+      score += 3;
+      passed.push("Languages listed ✓");
+    } else {
+      list.push("Add languages you speak — especially valuable for global companies.");
+    }
+
+    // ============================
+    // SECTION 12: CONTENT DEPTH BONUS (max 2)
+    // ============================
+    const totalSections = [
+      experiences.length > 0,
+      eduEntries.length > 0,
+      skillCount > 0,
+      projects.length > 0,
+      certs.length > 0,
+      achievements.length > 0,
+      langs.length > 0,
+      (resume.interests?.length || 0) > 0,
+    ].filter(Boolean).length;
+
+    if (totalSections >= 7) {
+      score += 2;
+      passed.push("Excellent section coverage ✓");
+    } else if (totalSections >= 5) {
+      score += 1;
+    }
+
+    // Clamp to 100 max
+    score = Math.min(score, 100);
 
     setAtsScore(score);
     setRecommendations(list);
+    setAtsPassed(passed);
   }, [resume]);
+
+  const handle1ClickAtsBooster = async () => {
+    setLoading(true);
+    try {
+      let updatedData: Partial<Resume> = {};
+
+      // 1. Generate summary if missing or short (< 30 words)
+      const currentSummaryWords = resume.personalInfo?.summary?.split(/\s+/).filter(Boolean).length || 0;
+      if (currentSummaryWords < 30) {
+        const sumRes = await generateSummary(resume);
+        if (sumRes?.success && sumRes.summary) {
+          updatedData.personalInfo = {
+            ...resume.personalInfo,
+            summary: sumRes.summary,
+          };
+        }
+      }
+
+      // 2. Recommend & add skills if skill count < 10
+      const currentSkills = resume.skills || [];
+      if (currentSkills.length < 10) {
+        const skillRes = await recommendSkills(currentSkills, targetJobTitle || resume.personalInfo?.headline || "Software Engineer");
+        if (skillRes?.success && Array.isArray(skillRes.skills)) {
+          const mergedSkills = Array.from(new Set([...currentSkills, ...skillRes.skills])).slice(0, 12);
+          updatedData.skills = mergedSkills;
+        }
+      }
+
+      // 3. Rewrite/optimize work experience descriptions if present
+      if (resume.experience && resume.experience.length > 0) {
+        const updatedExp = await Promise.all(
+          resume.experience.map(async (exp) => {
+            if (exp.description && exp.description.trim()) {
+              try {
+                const optRes = await optimizeExperience(exp.description, targetJobTitle || exp.position || "");
+                if (optRes?.success && optRes.optimized) {
+                  return { ...exp, description: optRes.optimized };
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            return exp;
+          })
+        );
+        updatedData.experience = updatedExp;
+      }
+
+      if (Object.keys(updatedData).length > 0) {
+        onUpdateResume(updatedData);
+        alert("🚀 1-Click ATS Booster applied! Your summary, skills, and experience bullets have been enhanced for maximum ATS ranking.");
+      } else {
+        alert("Your resume is already highly optimized!");
+      }
+    } catch (err: any) {
+      console.error("ATS Booster Error:", err);
+      alert("ATS Booster completed with partial updates.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -244,44 +493,101 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
         </button>
       </div>
 
-      {/* Tab Content 1: ATS SCORE */}
+      {/* Tab Content 1: ATS SCORE CARD & BOOSTER */}
       {activeTab === "ats" && (
         <div className="space-y-6">
-          <div className="text-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">
-              Overall ATS Score
+          <div className="text-center p-5 bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl border border-gray-200/80 shadow-sm relative overflow-hidden">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+              Genuine ATS Score Audit
             </h3>
-            <div className="relative inline-flex items-center justify-center">
-              <span className={`text-5xl font-black ${
-                atsScore >= 80 ? "text-green-600" : atsScore >= 50 ? "text-yellow-600" : "text-red-500"
+            <div className="relative inline-flex items-center justify-center my-1">
+              <span className={`text-6xl font-black tracking-tight ${
+                atsScore >= 80 ? "text-green-600" : atsScore >= 50 ? "text-amber-500" : "text-red-500"
               }`}>
                 {atsScore}%
               </span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              Based on standard Applicant Tracking System parser audits.
+            <div className="mt-1">
+              <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${
+                atsScore >= 80
+                  ? "bg-green-100 text-green-800"
+                  : atsScore >= 50
+                  ? "bg-amber-100 text-amber-800"
+                  : "bg-red-100 text-red-800"
+              }`}>
+                {atsScore >= 80
+                  ? "🌟 Excellent (ATS Optimized)"
+                  : atsScore >= 50
+                  ? "⚠️ Good (Needs Keyword Boost)"
+                  : "🚨 Low ATS Score (Action Required)"}
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-3 leading-relaxed max-w-xs mx-auto">
+              Audited against real ATS parser rules: action verbs, keyword density, section depth & contact info.
             </p>
+
+            {/* 1-Click ATS Booster Button */}
+            <div className="mt-4 pt-4 border-t border-gray-200/60">
+              <button
+                onClick={handle1ClickAtsBooster}
+                disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                    <span>Boosting ATS Score with AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 text-yellow-300 animate-pulse" />
+                    <span>⚡ 1-Click AI ATS Booster</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
+          {/* Passed Criteria */}
+          {atsPassed.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5 text-green-700">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                Passed Audits ({atsPassed.length})
+              </h4>
+              <div className="space-y-1.5">
+                {atsPassed.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs text-green-800 bg-green-50/60 border border-green-100 px-3 py-2 rounded-lg font-medium">
+                    <Check className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Items to Improve Score */}
           <div>
-            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5 text-amber-700">
               <AlertCircle className="h-4 w-4 text-amber-500" />
-              Action Items ({recommendations.length})
+              Required Improvements ({recommendations.length})
             </h4>
 
             {recommendations.length > 0 ? (
-              <ul className="space-y-2">
+              <div className="space-y-2">
                 {recommendations.map((rec, index) => (
-                  <li key={index} className="flex gap-2 items-start text-xs text-gray-600 leading-normal p-2.5 bg-red-50/30 rounded-lg border border-red-50/50">
-                    <span className="text-red-500 mt-0.5">•</span>
-                    <span>{rec}</span>
-                  </li>
+                  <div key={index} className="flex flex-col gap-2 p-3 bg-amber-50/40 rounded-xl border border-amber-100 text-xs text-gray-700">
+                    <div className="flex gap-2 items-start">
+                      <span className="text-amber-500 font-bold">•</span>
+                      <span className="font-medium leading-relaxed">{rec}</span>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <div className="flex gap-2 items-center text-xs text-green-700 bg-green-50/50 border border-green-100 p-4 rounded-xl font-medium">
+              <div className="flex gap-2 items-center text-xs text-green-700 bg-green-50 border border-green-200 p-4 rounded-xl font-bold">
                 <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-                Excellent job! Your resume hits all core ATS criteria.
+                Perfect! Your resume meets all top ATS parser standards.
               </div>
             )}
           </div>

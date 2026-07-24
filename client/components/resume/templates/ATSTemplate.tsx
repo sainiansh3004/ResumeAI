@@ -122,220 +122,197 @@ export default function ATSTemplate({ resume }: Props) {
 
           switch (sectionKey) {
             case "summary":
+              if (!personalInfo.summary?.trim()) return null;
               return (
                 <section key="summary" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
                   <p className="mt-2 whitespace-pre-line text-justify">
-                    {personalInfo.summary || "No professional summary added yet."}
+                    {personalInfo.summary}
                   </p>
                 </section>
               );
 
             case "skills":
+              if (!skills || skills.length === 0) return null;
               return (
                 <section key="skills" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {skills.length > 0 ? (
-                    <p className="mt-2">{skills.join(" • ")}</p>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No skills added yet.</p>
-                  )}
+                  <p className="mt-2">{skills.join(" • ")}</p>
                 </section>
               );
 
             case "experience":
+              if (!experience || experience.length === 0) return null;
               return (
                 <section key="experience" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {experience.length > 0 ? (
-                    <div className="mt-3 space-y-5">
-                      {experience.map((exp, index) => (
-                        <div key={index}>
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-bold">{exp.position || "Position"}</h3>
-                              <p className="italic">
-                                {exp.company}
-                                {exp.location && ` | ${exp.location}`}
-                              </p>
-                              {exp.employmentType && <p className="text-[12px]">{exp.employmentType}</p>}
-                            </div>
-                            <span className="whitespace-nowrap text-sm">
-                              {exp.startDate}
-                              {exp.startDate && exp.endDate && " – "}
-                              {exp.endDate}
-                            </span>
+                  <div className="mt-3 space-y-5">
+                    {experience.map((exp, index) => (
+                      <div key={index}>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-bold">{exp.position || "Position"}</h3>
+                            <p className="italic">
+                              {exp.company}
+                              {exp.location && ` | ${exp.location}`}
+                            </p>
+                            {exp.employmentType && <p className="text-[12px]">{exp.employmentType}</p>}
                           </div>
-                          {exp.description && <div className="mt-2 whitespace-pre-line">{exp.description}</div>}
+                          <span className="whitespace-nowrap text-sm">
+                            {exp.startDate}
+                            {exp.startDate && exp.endDate && " – "}
+                            {exp.endDate}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No experience added yet.</p>
-                  )}
+                        {exp.description && <div className="mt-2 whitespace-pre-line">{exp.description}</div>}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "projects":
+              if (!projects || projects.length === 0) return null;
               return (
                 <section key="projects" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {projects.length > 0 ? (
-                    <div className="mt-3 space-y-5">
-                      {projects.map((project, index) => (
-                        <div key={index}>
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-bold">{project.title || "Project Title"}</h3>
-                          </div>
-                          {project.technologies.length > 0 && (
-                            <p className="mt-1">
-                              <strong>Technologies:</strong> {project.technologies.join(", ")}
-                            </p>
-                          )}
-                          {(project.github || project.liveDemo) && (
-                            <div className="mt-1 text-[12px]">
-                              {project.github && (
-                                <p>
-                                  <strong>GitHub:</strong>{" "}
-                                  <span className={theme.secondary}>{project.github}</span>
-                                </p>
-                              )}
-                              {project.liveDemo && (
-                                <p>
-                                  <strong>Live:</strong>{" "}
-                                  <span className={theme.secondary}>{project.liveDemo}</span>
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          {project.description && <div className="mt-2 whitespace-pre-line">{project.description}</div>}
+                  <div className="mt-3 space-y-5">
+                    {projects.map((project, index) => (
+                      <div key={index}>
+                        <div className="flex items-start justify-between">
+                          <h3 className="font-bold">{project.title || "Project Title"}</h3>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No projects added yet.</p>
-                  )}
+                        {project.technologies && project.technologies.length > 0 && (
+                          <p className="mt-1">
+                            <strong>Technologies:</strong> {project.technologies.join(", ")}
+                          </p>
+                        )}
+                        {(project.github || project.liveDemo) && (
+                          <div className="mt-1 text-[12px]">
+                            {project.github && (
+                              <p>
+                                <strong>GitHub:</strong>{" "}
+                                <span className={theme.secondary}>{project.github}</span>
+                              </p>
+                            )}
+                            {project.liveDemo && (
+                              <p>
+                                <strong>Live:</strong>{" "}
+                                <span className={theme.secondary}>{project.liveDemo}</span>
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {project.description && <div className="mt-2 whitespace-pre-line">{project.description}</div>}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "education":
+              if (!education || education.length === 0) return null;
               return (
                 <section key="education" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {education.length > 0 ? (
-                    <div className="mt-3 space-y-4">
-                      {education.map((edu, index) => (
-                        <div key={index}>
-                          <div className="flex justify-between">
-                            <div>
-                              <h3 className="font-bold">
-                                {edu.degree}
-                                {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
-                              </h3>
-                              <p>{edu.college}</p>
-                              {edu.cgpa && <p>CGPA: {edu.cgpa}</p>}
-                            </div>
-                            <span className="whitespace-nowrap">
-                              {edu.startYear}
-                              {edu.startYear && edu.endYear && " – "}
-                              {edu.endYear}
-                            </span>
+                  <div className="mt-3 space-y-4">
+                    {education.map((edu, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="font-bold">
+                              {edu.degree}
+                              {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
+                            </h3>
+                            <p>{edu.college}</p>
+                            {edu.cgpa && <p>CGPA: {edu.cgpa}</p>}
                           </div>
+                          <span className="whitespace-nowrap">
+                            {edu.startYear}
+                            {edu.startYear && edu.endYear && " – "}
+                            {edu.endYear}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No education added yet.</p>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "certifications":
+              if (!certifications || certifications.length === 0) return null;
               return (
                 <section key="certifications" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {certifications.length > 0 ? (
-                    <div className="mt-3 space-y-4">
-                      {certifications.map((cert, index) => (
-                        <div key={index} className="flex justify-between">
-                          <div>
-                            <p className="font-bold">{cert.name}</p>
-                            {cert.organization && <p>{cert.organization}</p>}
-                          </div>
-                          {cert.issueDate && <span className="whitespace-nowrap">{cert.issueDate}</span>}
+                  <div className="mt-3 space-y-4">
+                    {certifications.map((cert, index) => (
+                      <div key={index} className="flex justify-between">
+                        <div>
+                          <p className="font-bold">{cert.name}</p>
+                          {cert.organization && <p>{cert.organization}</p>}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No certifications added yet.</p>
-                  )}
+                        {cert.issueDate && <span className="whitespace-nowrap">{cert.issueDate}</span>}
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
 
             case "achievements":
+              if (!achievements || achievements.length === 0) return null;
               return (
                 <section key="achievements" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {achievements.length > 0 ? (
-                    <ul className="mt-2 list-disc space-y-2 pl-5">
-                      {achievements.map((achievement, index) => (
-                        <li key={index}>
-                          <strong>{achievement.title}</strong>
-                          {achievement.description && ` — ${achievement.description}`}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No achievements added yet.</p>
-                  )}
+                  <ul className="mt-2 list-disc space-y-2 pl-5">
+                    {achievements.map((achievement, index) => (
+                      <li key={index}>
+                        <strong>{achievement.title}</strong>
+                        {achievement.description && ` — ${achievement.description}`}
+                      </li>
+                    ))}
+                  </ul>
                 </section>
               );
 
             case "languages":
+              if (!languages || languages.length === 0) return null;
               return (
                 <section key="languages" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {languages.length > 0 ? (
-                    <p className="mt-2">
-                      {languages
-                        .map((language) => `${language.name}${language.proficiency ? ` (${language.proficiency})` : ""}`)
-                        .join(" • ")}
-                    </p>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No languages added yet.</p>
-                  )}
+                  <p className="mt-2">
+                    {languages
+                      .map((language) => `${language.name}${language.proficiency ? ` (${language.proficiency})` : ""}`)
+                      .join(" • ")}
+                  </p>
                 </section>
               );
 
             case "interests":
+              if (!interests || interests.length === 0) return null;
               return (
                 <section key="interests" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  {interests.length > 0 ? (
-                    <p className="mt-2">
-                      {interests.map((interest) => interest.name).join(" • ")}
-                    </p>
-                  ) : (
-                    <p className="mt-2 italic text-gray-500">No interests added yet.</p>
-                  )}
+                  <p className="mt-2">
+                    {interests.map((interest) => interest.name).join(" • ")}
+                  </p>
                 </section>
               );
 

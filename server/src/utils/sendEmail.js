@@ -1,12 +1,4 @@
 const nodemailer = require("nodemailer");
-const dns = require("dns");
-
-// Force IPv4 resolution to prevent cloud host IPv6 ENETUNREACH errors
-try {
-  dns.setDefaultResultOrder("ipv4first");
-} catch (e) {
-  // Ignore if not supported in old node versions
-}
 
 const sendEmail = async ({ to, subject, html, text }) => {
   const user = (process.env.EMAIL_USER || "sainiansh3004@gmail.com").trim();
@@ -19,7 +11,6 @@ const sendEmail = async ({ to, subject, html, text }) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user, pass },
-    family: 4, // Force IPv4 family only
   });
 
   const mailOptions = {

@@ -42,7 +42,7 @@ export default function RegisterPage() {
         setStep("otp");
         setTimer(60);
         setOtp("");
-        setSuccessMsg(res.message || `We sent a 6-digit OTP to ${formData.email}`);
+        setSuccessMsg(res.message || `We sent a 6-digit OTP to ${formData.email}. Please check your Inbox, Spam, and Promotions folder.`);
       }
     } catch (err: any) {
       setError(

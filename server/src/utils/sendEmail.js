@@ -1,31 +1,45 @@
 const nodemailer = require("nodemailer");
 
-const createTransporter = () => {
+const getTransporters = () => {
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASS;
 
   if (!user || !pass) {
-    return null;
+    return [];
   }
 
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT || "465"),
-    secure: process.env.SMTP_SECURE !== "false", // true for 465 SSL
-    auth: { user, pass },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
+  return [
+    // 1. Standard Gmail service transport
+    nodemailer.createTransport({
+      service: "gmail",
+      auth: { user, pass },
+    }),
+    // 2. Direct SMTP port 587 STARTTLS
+    nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: { user, pass },
+      tls: { rejectUnauthorized: false },
+    }),
+    // 3. Direct SMTP port 465 SSL
+    nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user, pass },
+      tls: { rejectUnauthorized: false },
+    }),
+  ];
 };
 
 const sendEmail = async ({ to, subject, html, text }) => {
-  const transporter = createTransporter();
+  const transporters = getTransporters();
 
   console.log(`\n📧 [EMAIL REQUEST] To: ${to} | Subject: ${subject}`);
   console.log(`🔑 OTP Content: ${text || html.replace(/<[^>]*>?/gm, "")}\n`);
 
-  if (!transporter) {
+  if (transporters.length === 0) {
     console.log(`[DEV MODE] SMTP credentials not set in server/.env. Returning MOCK email success.`);
     return { success: true, mock: true };
   }
@@ -38,14 +52,21 @@ const sendEmail = async ({ to, subject, html, text }) => {
     html,
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent successfully via Nodemailer! MessageId:", info.messageId);
-    return { success: true, info };
-  } catch (error) {
-    console.error("❌ Error sending real email via Nodemailer:", error);
-    return { success: false, error: error.message };
+  let lastError = null;
+
+  for (let i = 0; i < transporters.length; i++) {
+    try {
+      console.log(`Attempting email delivery via Transporter #${i + 1}...`);
+      const info = await transporters[i].sendMail(mailOptions);
+      console.log(`✅ Email sent successfully via Transporter #${i + 1}! MessageId:`, info.messageId);
+      return { success: true, info };
+    } catch (err) {
+      console.error(`❌ Transporter #${i + 1} failed:`, err.message);
+      lastError = err;
+    }
   }
+
+  return { success: false, error: lastError?.message || "All email transports failed" };
 };
 
 module.exports = sendEmail;

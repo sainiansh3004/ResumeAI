@@ -14,11 +14,8 @@ export const PAPER_DIMENSIONS: Record<
   PaperSize,
   { width: number; height: number; name: string }
 > = {
-  a4: { width: 794, height: 1123, name: "A4 Standard" },
-  letter: { width: 816, height: 1056, name: "US Letter" },
-  legal: { width: 816, height: 1344, name: "US Legal" },
-  a3: { width: 1123, height: 1587, name: "A3 Poster" },
-  executive: { width: 696, height: 1010, name: "Executive" },
+  a4: { width: 794, height: 1123, name: "A4 Standard (India & Global)" },
+  letter: { width: 816, height: 1056, name: "US Letter (USA & Canada)" },
 };
 
 export default function A4Container({

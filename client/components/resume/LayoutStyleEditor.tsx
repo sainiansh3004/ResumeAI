@@ -18,11 +18,8 @@ const FONT_OPTIONS = [
 ];
 
 const PAPER_SIZE_OPTIONS: { value: PaperSize; label: string; desc: string }[] = [
-  { value: "a4", label: "A4 Standard", desc: "210 × 297 mm" },
-  { value: "letter", label: "US Letter", desc: "8.5 × 11 in" },
-  { value: "legal", label: "US Legal (Long)", desc: "8.5 × 14 in" },
-  { value: "executive", label: "Executive", desc: "7.25 × 10.5 in" },
-  { value: "a3", label: "A3 Extended", desc: "297 × 420 mm" },
+  { value: "a4", label: "A4 Standard (Recommended for India & Europe)", desc: "210 × 297 mm — Most popular for Campus & Off-Campus" },
+  { value: "letter", label: "US Letter (USA & Canada)", desc: "8.5 × 11 in (216 × 279 mm)" },
 ];
 
 const FONT_SIZE_OPTIONS: { value: ResumeSettings["fontSize"]; label: string }[] = [

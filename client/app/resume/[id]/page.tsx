@@ -220,23 +220,14 @@ export default function ResumeBuilder() {
 
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
 
-      // Determine dimensions based on selected paper size
+      // Determine dimensions based on selected paper size (A4 vs US Letter)
       const paperSize = resume.settings?.paperSize || "a4";
-      let pdfWidth = 210; // mm
-      let pdfHeight = 297; // mm
+      let pdfWidth = 210; // mm (A4)
+      let pdfHeight = 297; // mm (A4)
 
       if (paperSize === "letter") {
-        pdfWidth = 215.9;
-        pdfHeight = 279.4;
-      } else if (paperSize === "legal") {
-        pdfWidth = 215.9;
-        pdfHeight = 355.6;
-      } else if (paperSize === "executive") {
-        pdfWidth = 184.15;
-        pdfHeight = 266.7;
-      } else if (paperSize === "a3") {
-        pdfWidth = 297;
-        pdfHeight = 420;
+        pdfWidth = 215.9; // mm (US Letter)
+        pdfHeight = 279.4; // mm (US Letter)
       }
 
       const pdf = new jsPDF({
@@ -656,11 +647,8 @@ const handleSettingsChange = (
             title="Paper Sheet Size Format"
             className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:border-blue-500 focus:outline-none cursor-pointer"
           >
-            <option value="a4">📄 A4 Sheet</option>
-            <option value="letter">📄 US Letter</option>
-            <option value="legal">📄 US Legal (Long)</option>
-            <option value="executive">📄 Executive</option>
-            <option value="a3">📄 A3 Extended</option>
+            <option value="a4">📄 A4 Standard (India & Europe)</option>
+            <option value="letter">📄 US Letter (USA & Canada)</option>
           </select>
 
           <button

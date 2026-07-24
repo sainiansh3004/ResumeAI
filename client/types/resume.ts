@@ -127,7 +127,7 @@ export interface Interest {
 // Resume Settings
 // ==========================
 
-export type PaperSize = "a4" | "letter" | "legal" | "a3" | "executive";
+export type PaperSize = "a4" | "letter";
 
 export interface ResumeSettings {
   fontFamily: string;

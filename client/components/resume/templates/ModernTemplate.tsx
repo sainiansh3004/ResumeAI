@@ -51,6 +51,7 @@ export default function ModernTemplate({ resume }: Props) {
       {/* ================= HEADER ================= */}
 
       <div
+        id="preview-section-personalInfo"
         className={`mb-5 flex items-start justify-between border-b-2 pb-3 ${theme.border}`}
       >
         <div className="flex-1">
@@ -131,7 +132,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "summary":
               if (!resume.personalInfo.summary?.trim()) return null;
               return (
-                <section key="summary" className="mb-8">
+                <section id="preview-section-summary" key="summary" className="mb-8">
                   <h2 className={`mb-3 border-b-2 pb-1 text-lg font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -144,7 +145,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "education":
               if (!resume.education || resume.education.length === 0) return null;
               return (
-                <section key="education" className="mt-4">
+                <section id="preview-section-education" key="education" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -173,7 +174,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "experience":
               if (!resume.experience || resume.experience.length === 0) return null;
               return (
-                <section key="experience" className="mt-4">
+                <section id="preview-section-experience" key="experience" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -205,7 +206,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "skills":
               if (!resume.skills || resume.skills.length === 0) return null;
               return (
-                <section key="skills" className="mt-4">
+                <section id="preview-section-skills" key="skills" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -225,7 +226,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "projects":
               if (!resume.projects || resume.projects.length === 0) return null;
               return (
-                <section key="projects" className="mt-4">
+                <section id="preview-section-projects" key="projects" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -270,7 +271,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "certifications":
               if (!resume.certifications || resume.certifications.length === 0) return null;
               return (
-                <section key="certifications" className="mt-4">
+                <section id="preview-section-certifications" key="certifications" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -293,7 +294,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "languages":
               if (!resume.languages || resume.languages.length === 0) return null;
               return (
-                <section key="languages" className="mt-4">
+                <section id="preview-section-languages" key="languages" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -313,7 +314,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "achievements":
               if (!resume.achievements || resume.achievements.length === 0) return null;
               return (
-                <section key="achievements" className="mt-4">
+                <section id="preview-section-achievements" key="achievements" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -331,7 +332,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "interests":
               if (!resume.interests || resume.interests.length === 0) return null;
               return (
-                <section key="interests" className="mt-4">
+                <section id="preview-section-interests" key="interests" className="mt-4">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>

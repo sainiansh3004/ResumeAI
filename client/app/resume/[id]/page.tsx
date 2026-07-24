@@ -73,9 +73,22 @@ export default function ResumeBuilder() {
   const [saved, setSaved] = useState(true);
   const [sidebarMode, setSidebarMode] = useState<"edit" | "ai">("edit");
   const [importingFile, setImportingFile] = useState(false);
+  const [showTopBtn, setShowTopBtn] = useState(false);
+
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePreviewScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setShowTopBtn(e.currentTarget.scrollTop > 150);
+  };
+
+  const handleActiveSectionChange = (sectionKey: string) => {
+    const el = document.getElementById(`preview-section-${sectionKey}`);
+    if (el && previewContainerRef.current) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  };
 
   // ==========================
   // Export JSON
@@ -639,6 +652,7 @@ const handleSettingsChange = (
             onHiddenSectionsChange={handleHiddenSectionsChange}
             onCustomTitlesChange={handleCustomTitlesChange}
             onSettingsChange={handleSettingsChange}
+            onActiveSectionChange={handleActiveSectionChange}
           />
         </>
       ) : (
@@ -655,23 +669,26 @@ const handleSettingsChange = (
       )}
     </div>
 
-    {/* RIGHT PANEL: Independent Scrollable Live Preview */}
+    {/* RIGHT PANEL: Independent Scrollable Live Preview with Auto-Sync */}
     <div
       ref={previewContainerRef}
-      className="flex-1 h-full overflow-y-auto bg-gray-200 p-8 print:h-auto print:overflow-visible print:bg-white relative"
+      onScroll={handlePreviewScroll}
+      className="flex-1 h-full overflow-y-auto bg-gray-200 p-8 print:h-auto print:overflow-visible print:bg-white relative scroll-smooth"
     >
-      <button
-        onClick={() => {
-          if (previewContainerRef.current) {
-            previewContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-          }
-        }}
-        title="Scroll Preview to Top"
-        className="sticky top-2 left-2 z-30 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-gray-300 text-gray-700 rounded-full text-xs font-bold shadow-md hover:bg-white hover:text-blue-600 transition flex items-center gap-1 cursor-pointer print:hidden"
-      >
-        <ArrowUp className="h-3.5 w-3.5" />
-        <span>Top of Preview</span>
-      </button>
+      {showTopBtn && (
+        <button
+          onClick={() => {
+            if (previewContainerRef.current) {
+              previewContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          title="Scroll Preview to Top"
+          className="sticky top-2 left-2 z-30 px-3.5 py-1.5 bg-white/95 backdrop-blur-md border border-gray-300 text-gray-800 rounded-full text-xs font-bold shadow-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all flex items-center gap-1.5 cursor-pointer print:hidden animate-in fade-in duration-200"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+          <span>Top of Preview</span>
+        </button>
+      )}
 
       <div
         ref={previewRef}

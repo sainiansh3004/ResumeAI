@@ -56,6 +56,7 @@ export default function ATSTemplate({ resume }: Props) {
       {/* ================= HEADER ================= */}
 
 <header
+  id="preview-section-personalInfo"
   className={`border-b-2 pb-4 ${theme.border}`}
 >
   <div className="flex items-center justify-between gap-6">
@@ -124,7 +125,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "summary":
               if (!personalInfo.summary?.trim()) return null;
               return (
-                <section key="summary" className="mt-6">
+                <section id="preview-section-summary" key="summary" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -137,7 +138,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "skills":
               if (!skills || skills.length === 0) return null;
               return (
-                <section key="skills" className="mt-6">
+                <section id="preview-section-skills" key="skills" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -148,7 +149,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "experience":
               if (!experience || experience.length === 0) return null;
               return (
-                <section key="experience" className="mt-6">
+                <section id="preview-section-experience" key="experience" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -180,7 +181,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "projects":
               if (!projects || projects.length === 0) return null;
               return (
-                <section key="projects" className="mt-6">
+                <section id="preview-section-projects" key="projects" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -221,7 +222,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "education":
               if (!education || education.length === 0) return null;
               return (
-                <section key="education" className="mt-6">
+                <section id="preview-section-education" key="education" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -252,7 +253,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "certifications":
               if (!certifications || certifications.length === 0) return null;
               return (
-                <section key="certifications" className="mt-6">
+                <section id="preview-section-certifications" key="certifications" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -273,7 +274,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "achievements":
               if (!achievements || achievements.length === 0) return null;
               return (
-                <section key="achievements" className="mt-6">
+                <section id="preview-section-achievements" key="achievements" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -291,7 +292,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "languages":
               if (!languages || languages.length === 0) return null;
               return (
-                <section key="languages" className="mt-6">
+                <section id="preview-section-languages" key="languages" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -306,7 +307,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "interests":
               if (!interests || interests.length === 0) return null;
               return (
-                <section key="interests" className="mt-6">
+                <section id="preview-section-interests" key="interests" className="mt-6">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>

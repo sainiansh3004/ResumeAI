@@ -71,6 +71,8 @@ interface ResumeFormProps {
   onCustomTitlesChange: (customTitles: Record<string, string>) => void;
 
   onSettingsChange: (settings: ResumeSettings) => void;
+
+  onActiveSectionChange?: (sectionKey: string) => void;
 }
 
 export default function ResumeForm({
@@ -89,6 +91,7 @@ export default function ResumeForm({
   onHiddenSectionsChange,
   onCustomTitlesChange,
   onSettingsChange,
+  onActiveSectionChange,
 }: ResumeFormProps) {
   return (
     <>
@@ -117,51 +120,96 @@ export default function ResumeForm({
           Resume Sections
       ========================== */}
 
-      <PersonalInfo
-        resume={resume}
-        data={resume.personalInfo}
-        onChange={onPersonalInfoChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("personalInfo")}
+        onClickCapture={() => onActiveSectionChange?.("personalInfo")}
+      >
+        <PersonalInfo
+          resume={resume}
+          data={resume.personalInfo}
+          onChange={onPersonalInfoChange}
+        />
+      </div>
 
-      <Education
-        education={resume.education}
-        onChange={onEducationChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("education")}
+        onClickCapture={() => onActiveSectionChange?.("education")}
+      >
+        <Education
+          education={resume.education}
+          onChange={onEducationChange}
+        />
+      </div>
 
-      <Experience
-        experience={resume.experience}
-        onChange={onExperienceChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("experience")}
+        onClickCapture={() => onActiveSectionChange?.("experience")}
+      >
+        <Experience
+          experience={resume.experience}
+          onChange={onExperienceChange}
+        />
+      </div>
 
-      <Skills
-        skills={resume.skills}
-        onChange={onSkillsChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("skills")}
+        onClickCapture={() => onActiveSectionChange?.("skills")}
+      >
+        <Skills
+          skills={resume.skills}
+          onChange={onSkillsChange}
+        />
+      </div>
 
-      <Projects
-        projects={resume.projects}
-        onChange={onProjectsChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("projects")}
+        onClickCapture={() => onActiveSectionChange?.("projects")}
+      >
+        <Projects
+          projects={resume.projects}
+          onChange={onProjectsChange}
+        />
+      </div>
 
-      <Certifications
-        certifications={resume.certifications}
-        onChange={onCertificationsChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("certifications")}
+        onClickCapture={() => onActiveSectionChange?.("certifications")}
+      >
+        <Certifications
+          certifications={resume.certifications}
+          onChange={onCertificationsChange}
+        />
+      </div>
 
-      <Achievements
-        achievements={resume.achievements ?? []}
-        onChange={onAchievementsChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("achievements")}
+        onClickCapture={() => onActiveSectionChange?.("achievements")}
+      >
+        <Achievements
+          achievements={resume.achievements ?? []}
+          onChange={onAchievementsChange}
+        />
+      </div>
 
-      <Languages
-        languages={resume.languages ?? []}
-        onChange={onLanguagesChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("languages")}
+        onClickCapture={() => onActiveSectionChange?.("languages")}
+      >
+        <Languages
+          languages={resume.languages ?? []}
+          onChange={onLanguagesChange}
+        />
+      </div>
 
-      <Interests
-        interests={resume.interests ?? []}
-        onChange={onInterestsChange}
-      />
+      <div
+        onFocusCapture={() => onActiveSectionChange?.("interests")}
+        onClickCapture={() => onActiveSectionChange?.("interests")}
+      >
+        <Interests
+          interests={resume.interests ?? []}
+          onChange={onInterestsChange}
+        />
+      </div>
     </>
   );
 }

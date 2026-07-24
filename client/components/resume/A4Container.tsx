@@ -60,6 +60,7 @@ export default function A4Container({
   return (
     <div
       ref={containerRef}
+      id="resume-card"
       className={`bg-white shadow-2xl transition-all duration-300 relative box-border mx-auto print:shadow-none print:m-0 ${
         fitToOnePage ? "fit-one-page-print" : ""
       }`}

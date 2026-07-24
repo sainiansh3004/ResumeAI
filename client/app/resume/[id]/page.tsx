@@ -198,7 +198,7 @@ export default function ResumeBuilder() {
   // Download 1-Page PDF Resume
   // ==========================
   const downloadPDF = async () => {
-    const el = document.getElementById("print-area");
+    const el = document.getElementById("resume-card") || document.getElementById("print-area");
     if (!el) {
       window.print();
       return;

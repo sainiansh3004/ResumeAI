@@ -71,7 +71,7 @@ export default function ResumePreview({
 
       <div
         id="resume-preview"
-        className="flex w-full justify-center overflow-y-auto bg-gray-200 p-8"
+        className="flex w-full justify-center bg-transparent p-0"
         style={previewStyle}
       >
         <A4Container

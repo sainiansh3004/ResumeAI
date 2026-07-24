@@ -13,6 +13,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
   const resendApiKey = (process.env.RESEND_API_KEY || "").trim();
   if (resendApiKey) {
     try {
+      console.log("Attempting email delivery via Resend REST API...");
       const resendRes = await axios.post(
         "https://api.resend.com/emails",
         {
@@ -29,10 +30,12 @@ const sendEmail = async ({ to, subject, html, text }) => {
           },
         }
       );
-      console.log("✅ Email delivered via Resend REST API! ID:", resendRes.data?.id);
-      return { success: true, info: resendRes.data };
+      if (resendRes.data && resendRes.data.id) {
+        console.log("✅ Email delivered via Resend REST API! ID:", resendRes.data.id);
+        return { success: true, info: resendRes.data };
+      }
     } catch (err) {
-      console.error("❌ Resend API failed:", err.response?.data || err.message);
+      console.error("❌ Resend API failed, falling back to Gmail SMTP:", err.response?.data || err.message);
     }
   }
 

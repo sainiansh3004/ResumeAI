@@ -2,8 +2,8 @@ const nodemailer = require("nodemailer");
 const axios = require("axios");
 
 const getTransporters = () => {
-  const user = (process.env.EMAIL_USER || "").trim();
-  const pass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+  const user = (process.env.EMAIL_USER || "sainiansh3004@gmail.com").trim();
+  const pass = (process.env.EMAIL_PASS || "akvxicjvxplgaoez").replace(/\s+/g, "");
 
   if (!user || !pass) {
     return [];

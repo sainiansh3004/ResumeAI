@@ -149,7 +149,7 @@ export interface Resume {
 
   title: string;
 
-  template: "modern" | "minimal" | "ats" | "creative" | "executive" | "tech" | "academic" | "sleek";
+  template: "modern" | "minimal" | "ats" | "creative" | "executive" | "tech" | "academic" | "sleek" | "offcampus";
 
   themeColor: "blue" | "purple" | "green" | "black" | "red";
 

@@ -21,19 +21,26 @@ import {
   recommendSkills,
 } from "@/services/aiService";
 
+export interface AtsRecommendation {
+  text: string;
+  fieldKey: string;
+  fieldLabel: string;
+}
+
 interface AiSuiteProps {
   resume: Resume;
   onUpdateResume: (updatedResume: Partial<Resume>) => void;
+  onNavigateToSection?: (sectionKey: string) => void;
 }
 
-export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
+export default function AiSuite({ resume, onUpdateResume, onNavigateToSection }: AiSuiteProps) {
   const [activeTab, setActiveTab] = useState<"ats" | "ai">("ats");
   const [loading, setLoading] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
 
   // ATS Scoring Logic
   const [atsScore, setAtsScore] = useState(0);
-  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<AtsRecommendation[]>([]);
   const [atsPassed, setAtsPassed] = useState<string[]>([]);
 
   // AI State
@@ -48,7 +55,7 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
   // Calculate ATS Score whenever resume updates
   useEffect(() => {
     let score = 0;
-    const list: string[] = [];
+    const list: AtsRecommendation[] = [];
     const passed: string[] = [];
 
     // ============================
@@ -56,16 +63,16 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
     // ============================
     let contactPts = 0;
     if (resume.personalInfo?.fullName?.trim()) contactPts += 3;
-    else list.push("Add your full name — required by every ATS parser.");
+    else list.push({ text: "Add your full name — required by every ATS parser.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
     if (resume.personalInfo?.email?.trim()) {
       contactPts += 3;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resume.personalInfo.email))
-        list.push("Email format appears invalid — ATS may reject it.");
-    } else list.push("Add a professional email address.");
+        list.push({ text: "Email format appears invalid — ATS may reject it.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
+    } else list.push({ text: "Add a professional email address.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
     if (resume.personalInfo?.phone?.trim()) contactPts += 3;
-    else list.push("Add a phone number — 98% of recruiters expect it.");
+    else list.push({ text: "Add a phone number — 98% of recruiters expect it.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
     if (resume.personalInfo?.address?.trim()) contactPts += 3;
-    else list.push("Include city/location — helps with geo-targeted job filters.");
+    else list.push({ text: "Include city/location — helps with geo-targeted job filters.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
     score += contactPts;
     if (contactPts === 12) passed.push("Contact info is complete ✓");
 
@@ -78,9 +85,9 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
       passed.push("Professional headline present ✓");
     } else if (headline.length > 0) {
       score += 2;
-      list.push("Expand your headline to 15+ characters (e.g. 'Full Stack Developer | React & Node.js').");
+      list.push({ text: "Expand your headline to 15+ characters (e.g. 'Full Stack Developer | React & Node.js').", fieldKey: "personalInfo", fieldLabel: "Headline" });
     } else {
-      list.push("Add a professional headline — many ATS systems parse this as your job title.");
+      list.push({ text: "Add a professional headline — many ATS systems parse this as your job title.", fieldKey: "personalInfo", fieldLabel: "Headline" });
     }
 
     // ============================
@@ -94,12 +101,12 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
       passed.push("Summary is well-developed ✓");
     } else if (summaryWordCount >= 20) {
       score += 7;
-      list.push(`Expand your summary from ${summaryWordCount} to 40+ words — detailed summaries rank higher in ATS.`);
+      list.push({ text: `Expand your summary from ${summaryWordCount} to 40+ words — detailed summaries rank higher in ATS.`, fieldKey: "personalInfo", fieldLabel: "Summary" });
     } else if (summaryWordCount > 0) {
       score += 3;
-      list.push(`Your summary is only ${summaryWordCount} words — aim for 40+ words with industry keywords.`);
+      list.push({ text: `Your summary is only ${summaryWordCount} words — aim for 40+ words with industry keywords.`, fieldKey: "personalInfo", fieldLabel: "Summary" });
     } else {
-      list.push("Add a professional summary — this is the first thing ATS parsers analyze for keyword matching.");
+      list.push({ text: "Add a professional summary — this is the first thing ATS parsers analyze for keyword matching.", fieldKey: "personalInfo", fieldLabel: "Summary" });
     }
 
     // ============================
@@ -107,9 +114,8 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
     // ============================
     const experiences = resume.experience || [];
     if (experiences.length > 0) {
-      score += 8; // base points for having experience
+      score += 8;
 
-      // Analyze each experience entry
       let totalExpWords = 0;
       let expWithActionVerbs = 0;
       let expWithQuantification = 0;
@@ -122,54 +128,48 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
         const descWords = desc.split(/\s+/).filter(Boolean).length;
         totalExpWords += descWords;
 
-        // Check for action verbs in bullet points
         const bullets = desc.split(/[\n•\-]/);
         const hasActions = bullets.some((b) => actionVerbs.test(b.trim()));
         if (hasActions) expWithActionVerbs++;
 
-        // Check for quantified achievements
         if (/\d+%|\$\d+|\d+\+|\d+x|[0-9]+ (users|clients|projects|team|members|revenue|million|thousand)/i.test(desc))
           expWithQuantification++;
 
-        // Check for dates
         if (exp.startDate) expWithDates++;
       });
 
-      // Detailed descriptions (max 7)
       const avgWordsPerExp = totalExpWords / experiences.length;
       if (avgWordsPerExp >= 40) {
         score += 7;
       } else if (avgWordsPerExp >= 20) {
         score += 4;
-        list.push(`Experience descriptions average ${Math.round(avgWordsPerExp)} words — aim for 40+ words per role with bullet points.`);
+        list.push({ text: `Experience descriptions average ${Math.round(avgWordsPerExp)} words — aim for 40+ words per role with bullet points.`, fieldKey: "experience", fieldLabel: "Work Experience" });
       } else {
         score += 1;
-        list.push("Experience descriptions are too brief — add detailed bullet points with responsibilities and achievements.");
+        list.push({ text: "Experience descriptions are too brief — add detailed bullet points with responsibilities and achievements.", fieldKey: "experience", fieldLabel: "Work Experience" });
       }
 
-      // Action verbs (max 5)
       if (expWithActionVerbs === experiences.length) {
         score += 5;
         passed.push("Strong action verbs used ✓");
       } else if (expWithActionVerbs > 0) {
         score += 2;
-        list.push(`${experiences.length - expWithActionVerbs} experience entries lack strong action verbs (Led, Built, Optimized, Delivered, etc.).`);
+        list.push({ text: `${experiences.length - expWithActionVerbs} experience entries lack strong action verbs (Led, Built, Optimized, Delivered, etc.).`, fieldKey: "experience", fieldLabel: "Work Experience" });
       } else {
-        list.push("Start each experience bullet with a strong action verb (Led, Built, Increased, Managed, etc.).");
+        list.push({ text: "Start each experience bullet with a strong action verb (Led, Built, Increased, Managed, etc.).", fieldKey: "experience", fieldLabel: "Work Experience" });
       }
 
-      // Quantified results (max 5)
       if (expWithQuantification >= Math.ceil(experiences.length * 0.5)) {
         score += 5;
         passed.push("Quantified achievements present ✓");
       } else if (expWithQuantification > 0) {
         score += 2;
-        list.push("Add measurable results (%, $, numbers) to more experience entries — recruiters value quantified impact.");
+        list.push({ text: "Add measurable results (%, $, numbers) to more experience entries — recruiters value quantified impact.", fieldKey: "experience", fieldLabel: "Work Experience" });
       } else {
-        list.push("Include quantified achievements in experience (e.g. 'Increased revenue by 35%', 'Managed team of 8').");
+        list.push({ text: "Include quantified achievements in experience (e.g. 'Increased revenue by 35%', 'Managed team of 8').", fieldKey: "experience", fieldLabel: "Work Experience" });
       }
     } else {
-      list.push("Add professional work experience — this is the most critical section for ATS ranking.");
+      list.push({ text: "Add professional work experience — this is the most critical section for ATS ranking.", fieldKey: "experience", fieldLabel: "Work Experience" });
     }
 
     // ============================
@@ -181,15 +181,15 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
       passed.push(`${skillCount} skills listed — great keyword density ✓`);
     } else if (skillCount >= 6) {
       score += 8;
-      list.push(`You have ${skillCount} skills — add ${10 - skillCount} more to reach the optimal 10+ for ATS keyword matching.`);
+      list.push({ text: `You have ${skillCount} skills — add ${10 - skillCount} more to reach the optimal 10+ for ATS keyword matching.`, fieldKey: "skills", fieldLabel: "Technical Skills" });
     } else if (skillCount >= 3) {
       score += 4;
-      list.push(`Only ${skillCount} skills listed — ATS systems match job descriptions against your skills. Aim for 10+.`);
+      list.push({ text: `Only ${skillCount} skills listed — ATS systems match job descriptions against your skills. Aim for 10+.`, fieldKey: "skills", fieldLabel: "Technical Skills" });
     } else if (skillCount > 0) {
       score += 2;
-      list.push("You need significantly more skills — most competitive resumes list 10-15 relevant technical and soft skills.");
+      list.push({ text: "You need significantly more skills — most competitive resumes list 10-15 relevant technical and soft skills.", fieldKey: "skills", fieldLabel: "Technical Skills" });
     } else {
-      list.push("Add a Skills section — ATS parsers heavily rely on keyword matching from this section.");
+      list.push({ text: "Add a Skills section — ATS parsers heavily rely on keyword matching from this section.", fieldKey: "skills", fieldLabel: "Technical Skills" });
     }
 
     // ============================
@@ -205,11 +205,11 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
         eduPts += 3;
         passed.push("Education section is complete ✓");
       } else {
-        list.push("Add degree name, institution, and graduation year to education entries.");
+        list.push({ text: "Add degree name, institution, and graduation year to education entries.", fieldKey: "education", fieldLabel: "Education" });
       }
       score += eduPts;
     } else {
-      list.push("Include your education — most ATS systems require this section.");
+      list.push({ text: "Include your education — most ATS systems require this section.", fieldKey: "education", fieldLabel: "Education" });
     }
 
     // ============================
@@ -225,13 +225,13 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
         score += 2;
         passed.push("Projects showcase technical skills ✓");
       } else {
-        list.push("Enhance project descriptions with 15+ words and list specific technologies used.");
+        list.push({ text: "Enhance project descriptions with 15+ words and list specific technologies used.", fieldKey: "projects", fieldLabel: "Projects" });
       }
     } else if (projects.length === 1) {
       score += 3;
-      list.push("Add a second project — multiple projects demonstrate broader capability.");
+      list.push({ text: "Add a second project — multiple projects demonstrate broader capability.", fieldKey: "projects", fieldLabel: "Projects" });
     } else {
-      list.push("Add 2+ projects to showcase practical application of your skills.");
+      list.push({ text: "Add 2+ projects to showcase practical application of your skills.", fieldKey: "projects", fieldLabel: "Projects" });
     }
 
     // ============================
@@ -242,7 +242,7 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
       score += 4;
       passed.push("Certifications included ✓");
     } else {
-      list.push("Add relevant certifications — they boost ATS score for specialized roles.");
+      list.push({ text: "Add relevant certifications — they boost ATS score for specialized roles.", fieldKey: "certifications", fieldLabel: "Certifications" });
     }
 
     // ============================
@@ -253,7 +253,7 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
       score += 4;
       passed.push("Achievements highlighted ✓");
     } else {
-      list.push("Add notable achievements (awards, competition ranks, publications) to stand out.");
+      list.push({ text: "Add notable achievements (awards, competition ranks, publications) to stand out.", fieldKey: "achievements", fieldLabel: "Achievements" });
     }
 
     // ============================
@@ -261,10 +261,10 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
     // ============================
     let linkPts = 0;
     if (resume.personalInfo?.linkedin?.trim()) linkPts += 2;
-    else list.push("Add your LinkedIn profile URL — 87% of recruiters check LinkedIn.");
+    else list.push({ text: "Add your LinkedIn profile URL — 87% of recruiters check LinkedIn.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
     if (resume.personalInfo?.github?.trim()) linkPts += 2;
     else if (skillCount > 0 && resume.skills?.some((s) => /javascript|python|react|node|java|c\+\+|go|rust|typescript/i.test(s)))
-      list.push("Add your GitHub profile — critical for software/engineering roles.");
+      list.push({ text: "Add your GitHub profile — critical for software/engineering roles.", fieldKey: "personalInfo", fieldLabel: "Personal Info" });
     if (resume.personalInfo?.portfolio?.trim()) linkPts += 1;
     score += linkPts;
     if (linkPts >= 4) passed.push("Professional links present ✓");
@@ -277,7 +277,7 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
       score += 3;
       passed.push("Languages listed ✓");
     } else {
-      list.push("Add languages you speak — especially valuable for global companies.");
+      list.push({ text: "Add languages you speak — especially valuable for global companies.", fieldKey: "languages", fieldLabel: "Languages" });
     }
 
     // ============================
@@ -576,11 +576,19 @@ export default function AiSuite({ resume, onUpdateResume }: AiSuiteProps) {
             {recommendations.length > 0 ? (
               <div className="space-y-2">
                 {recommendations.map((rec, index) => (
-                  <div key={index} className="flex flex-col gap-2 p-3 bg-amber-50/40 rounded-xl border border-amber-100 text-xs text-gray-700">
+                  <div key={index} className="flex flex-col gap-2 p-3 bg-amber-50/50 rounded-xl border border-amber-100 text-xs text-gray-700 shadow-2xs">
                     <div className="flex gap-2 items-start">
                       <span className="text-amber-500 font-bold">•</span>
-                      <span className="font-medium leading-relaxed">{rec}</span>
+                      <span className="font-medium leading-relaxed flex-1">{rec.text}</span>
                     </div>
+                    {onNavigateToSection && (
+                      <button
+                        onClick={() => onNavigateToSection(rec.fieldKey)}
+                        className="self-end px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-600 hover:text-white transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                      >
+                        <span>✏️ Edit {rec.fieldLabel}</span>
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

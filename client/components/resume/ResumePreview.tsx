@@ -10,6 +10,7 @@ import ExecutiveTemplate from "./templates/ExecutiveTemplate";
 import TechTemplate from "./templates/TechTemplate";
 import AcademicTemplate from "./templates/AcademicTemplate";
 import SleekTemplate from "./templates/SleekTemplate";
+import OffCampusTemplate from "./templates/OffCampusTemplate";
 
 import { Resume, ResumeSettings } from "@/types/resume";
 
@@ -108,6 +109,10 @@ export default function ResumePreview({
 
           {resume.template === "sleek" && (
             <SleekTemplate resume={resume} />
+          )}
+
+          {resume.template === "offcampus" && (
+            <OffCampusTemplate resume={resume} />
           )}
         </A4Container>
       </div>

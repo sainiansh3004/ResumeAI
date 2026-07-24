@@ -19,13 +19,23 @@ const templates: {
   pro?: boolean;
 }[] = [
   {
+    id: "offcampus",
+    name: "Off-Campus FAANG ATS",
+    category: "FAANG / Corporate ATS",
+    description:
+      "Tier-1 single-column layout engineered specifically for top corporate off-campus applications (Google, Amazon, Microsoft, Top Tech).",
+    ats: true,
+    recommended: true,
+    comingSoon: false,
+  },
+  {
     id: "modern",
     name: "Modern",
     category: "Professional",
     description:
       "Elegant and modern resume perfect for software engineers and professionals.",
     ats: false,
-    recommended: true,
+    recommended: false,
     comingSoon: false,
   },
   {

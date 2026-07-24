@@ -719,6 +719,12 @@ const handleSettingsChange = (
             }));
             setSaved(false);
           }}
+          onNavigateToSection={(sectionKey) => {
+            setSidebarMode("edit");
+            setTimeout(() => {
+              handleActiveSectionChange(sectionKey);
+            }, 100);
+          }}
         />
       )}
     </div>

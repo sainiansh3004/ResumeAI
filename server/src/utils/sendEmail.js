@@ -10,7 +10,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
   console.log(`🔑 OTP Code: ${cleanOtp}\n`);
 
   // Option 1: Resend HTTP REST API
-  const resendApiKey = (process.env.RESEND_API_KEY || "re_jV5oc7kp_NmrAsE57wXabniddeya3TK9N").trim();
+  const resendApiKey = (process.env.RESEND_API_KEY || "").trim();
   if (resendApiKey) {
     try {
       const resendRes = await axios.post(

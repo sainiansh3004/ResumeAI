@@ -162,7 +162,7 @@ You are an expert AI ATS Resume Parser. Extract and structure all relevant candi
 Resume Text:
 ${resumeText}
 
-Return a valid JSON object matching this exact structure:
+Return a valid JSON object matching this EXACT structure (field names MUST match exactly):
 {
   "title": "Resume",
   "personalInfo": {
@@ -181,47 +181,72 @@ Return a valid JSON object matching this exact structure:
       "college": "",
       "degree": "",
       "fieldOfStudy": "",
-      "startDate": "",
-      "endDate": "",
-      "gpa": ""
+      "startYear": "",
+      "endYear": "",
+      "cgpa": ""
     }
   ],
   "experience": [
     {
       "company": "",
       "position": "",
+      "location": "",
+      "employmentType": "",
       "startDate": "",
       "endDate": "",
-      "current": false,
+      "currentlyWorking": false,
       "description": ""
     }
   ],
-  "skills": [],
+  "skills": ["skill1", "skill2"],
   "projects": [
     {
-      "name": "",
+      "title": "",
       "description": "",
-      "techStack": "",
-      "link": ""
+      "technologies": ["tech1", "tech2"],
+      "github": "",
+      "liveDemo": ""
     }
   ],
   "certifications": [
     {
       "name": "",
-      "issuer": "",
-      "date": ""
+      "organization": "",
+      "issueDate": ""
     }
   ],
-  "achievements": [],
-  "languages": [],
-  "interests": []
+  "achievements": [
+    {
+      "title": "",
+      "description": ""
+    }
+  ],
+  "languages": [
+    {
+      "name": "",
+      "proficiency": ""
+    }
+  ],
+  "interests": [
+    {
+      "name": ""
+    }
+  ]
 }
 
 Requirements:
 - Extract as much information as possible from the provided text.
 - Set title to the person's full name followed by 'Resume' (e.g. "John Doe Resume") if full name is found, otherwise "Uploaded Resume".
+- achievements MUST be an array of objects with "title" and "description" keys. Never return plain strings.
+- languages MUST be an array of objects with "name" and "proficiency" keys. Never return plain strings.
+- interests MUST be an array of objects with a "name" key. Never return plain strings.
+- projects MUST use "title" (not "name"), and "technologies" must be an array of strings (not a single string).
+- education MUST use "startYear", "endYear", "cgpa" (not startDate, endDate, gpa).
+- certifications MUST use "organization" and "issueDate" (not "issuer" or "date").
+- experience MUST use "currentlyWorking" (not "current").
+- skills MUST be a flat array of strings.
 - If a section or field is not present in the text, use an empty string "" or an empty array [].
-- Return ONLY valid raw JSON. Do not wrap in markdown code blocks (\`\`\`json).
+- Return ONLY valid raw JSON. Do not wrap in markdown code blocks.
 `;
 
   return callGroq(prompt);

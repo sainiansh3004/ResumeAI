@@ -141,6 +141,114 @@ const recommendSkills = async (req, res) => {
 };
 
 // ==========================
+// Sanitize AI-parsed resume to match MongoDB schema
+// ==========================
+const sanitizeResumeData = (data) => {
+  const safe = { ...data };
+
+  // achievements: must be [{ title, description }]
+  if (Array.isArray(safe.achievements)) {
+    safe.achievements = safe.achievements.map((item) => {
+      if (typeof item === "string") return { title: item, description: "" };
+      return { title: item.title || item.name || "", description: item.description || "" };
+    });
+  } else {
+    safe.achievements = [];
+  }
+
+  // languages: must be [{ name, proficiency }]
+  if (Array.isArray(safe.languages)) {
+    safe.languages = safe.languages.map((item) => {
+      if (typeof item === "string") return { name: item, proficiency: "" };
+      return { name: item.name || item.language || "", proficiency: item.proficiency || item.level || "" };
+    });
+  } else {
+    safe.languages = [];
+  }
+
+  // interests: must be [{ name }]
+  if (Array.isArray(safe.interests)) {
+    safe.interests = safe.interests.map((item) => {
+      if (typeof item === "string") return { name: item };
+      return { name: item.name || "" };
+    });
+  } else {
+    safe.interests = [];
+  }
+
+  // projects: must use title, technologies (array), github, liveDemo
+  if (Array.isArray(safe.projects)) {
+    safe.projects = safe.projects.map((item) => {
+      if (typeof item === "string") return { title: item, description: "", technologies: [], github: "", liveDemo: "" };
+      let techs = item.technologies || item.techStack || [];
+      if (typeof techs === "string") techs = techs.split(",").map((t) => t.trim()).filter(Boolean);
+      return {
+        title: item.title || item.name || "",
+        description: item.description || "",
+        technologies: Array.isArray(techs) ? techs : [],
+        github: item.github || item.link || "",
+        liveDemo: item.liveDemo || "",
+      };
+    });
+  } else {
+    safe.projects = [];
+  }
+
+  // education: must use startYear, endYear, cgpa
+  if (Array.isArray(safe.education)) {
+    safe.education = safe.education.map((item) => ({
+      college: item.college || item.school || item.institution || "",
+      degree: item.degree || "",
+      fieldOfStudy: item.fieldOfStudy || item.field || "",
+      startYear: item.startYear || item.startDate || "",
+      endYear: item.endYear || item.endDate || "",
+      cgpa: item.cgpa || item.gpa || "",
+    }));
+  } else {
+    safe.education = [];
+  }
+
+  // experience: must use currentlyWorking
+  if (Array.isArray(safe.experience)) {
+    safe.experience = safe.experience.map((item) => ({
+      company: item.company || "",
+      position: item.position || item.role || item.title || "",
+      location: item.location || "",
+      employmentType: item.employmentType || "",
+      startDate: item.startDate || "",
+      endDate: item.endDate || "",
+      currentlyWorking: item.currentlyWorking || item.current || false,
+      description: item.description || "",
+    }));
+  } else {
+    safe.experience = [];
+  }
+
+  // certifications: must use organization, issueDate
+  if (Array.isArray(safe.certifications)) {
+    safe.certifications = safe.certifications.map((item) => {
+      if (typeof item === "string") return { name: item, organization: "", issueDate: "" };
+      return {
+        name: item.name || "",
+        organization: item.organization || item.issuer || "",
+        issueDate: item.issueDate || item.date || "",
+      };
+    });
+  } else {
+    safe.certifications = [];
+  }
+
+  // skills: must be flat array of strings
+  if (Array.isArray(safe.skills)) {
+    safe.skills = safe.skills.map((s) => (typeof s === "string" ? s : s.name || String(s)));
+  } else {
+    safe.skills = [];
+  }
+
+  return safe;
+};
+
+// ==========================
 // Parse PDF Resume
 // ==========================
 const parseResumePdf = async (req, res) => {
@@ -175,6 +283,9 @@ const parseResumePdf = async (req, res) => {
         message: "Failed to format structured resume data from AI response.",
       });
     }
+
+    // Sanitize to match exact MongoDB schema shapes
+    parsedResume = sanitizeResumeData(parsedResume);
 
     return res.status(200).json({
       success: true,

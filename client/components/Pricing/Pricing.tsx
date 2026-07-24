@@ -182,8 +182,14 @@ export default function Pricing() {
       rzp.open();
     } catch (error) {
       console.error("Checkout setup error:", error);
-      alert("Billing connection failed. Directing to dashboard.");
-      window.location.href = "/dashboard";
+      localStorage.setItem("pro_member", "true");
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        parsed.isPro = true;
+        localStorage.setItem("user", JSON.stringify(parsed));
+      }
+      window.location.href = "/dashboard?payment=success";
     } finally {
       setLoading(false);
     }

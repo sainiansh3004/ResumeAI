@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api"}/auth`,
+  baseURL: `${process.env.NEXT_PUBLIC_API_URL || "https://resumeai-qfs2.onrender.com/api"}/auth`,
   headers: {
     "Content-Type": "application/json",
   },

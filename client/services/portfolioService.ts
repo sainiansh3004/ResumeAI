@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api"}/portfolios`;
+  `${process.env.NEXT_PUBLIC_API_URL || "https://resumeai-qfs2.onrender.com/api"}/portfolios`;
 
 const getToken = () => localStorage.getItem("token");
 

@@ -23,15 +23,18 @@ app.use(
       const allowedOrigins = [
         "http://localhost:3000",
         "http://localhost:3001",
+        "https://resume-ai-alpha-beige.vercel.app",
       ];
 
-      if (allowedOrigins.includes(origin))
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        origin.includes("vercel.app")
+      ) {
         return callback(null, true);
+      }
 
-      if (origin.endsWith(".vercel.app"))
-        return callback(null, true);
-      if (origin.endsWith(".vercel.app")) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
+      return callback(null, true); // Fallback: allow request
     },
     credentials: true,
   })

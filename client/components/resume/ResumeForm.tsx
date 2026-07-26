@@ -136,7 +136,7 @@ export default function ResumeForm({
         onClickCapture={() => onActiveSectionChange?.("education")}
       >
         <Education
-          education={resume.education}
+          education={resume.education ?? []}
           onChange={onEducationChange}
         />
       </div>
@@ -146,7 +146,7 @@ export default function ResumeForm({
         onClickCapture={() => onActiveSectionChange?.("experience")}
       >
         <Experience
-          experience={resume.experience}
+          experience={resume.experience ?? []}
           onChange={onExperienceChange}
         />
       </div>
@@ -156,7 +156,7 @@ export default function ResumeForm({
         onClickCapture={() => onActiveSectionChange?.("skills")}
       >
         <Skills
-          skills={resume.skills}
+          skills={resume.skills ?? []}
           onChange={onSkillsChange}
         />
       </div>
@@ -166,7 +166,7 @@ export default function ResumeForm({
         onClickCapture={() => onActiveSectionChange?.("projects")}
       >
         <Projects
-          projects={resume.projects}
+          projects={resume.projects ?? []}
           onChange={onProjectsChange}
         />
       </div>
@@ -176,7 +176,7 @@ export default function ResumeForm({
         onClickCapture={() => onActiveSectionChange?.("certifications")}
       >
         <Certifications
-          certifications={resume.certifications}
+          certifications={resume.certifications ?? []}
           onChange={onCertificationsChange}
         />
       </div>

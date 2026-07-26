@@ -526,8 +526,22 @@ const handleSettingsChange = (
 
 
   // ==========================
-  // Auto Save
+  // Auto Save & Manual Save
   // ==========================
+  const handleManualSave = async () => {
+    if (!id || saving) return;
+    try {
+      setSaving(true);
+      await updateResume(id, resume);
+      setSaving(false);
+      setSaved(true);
+    } catch (err) {
+      console.error("Failed to save resume:", err);
+      setSaving(false);
+      setSaved(false);
+    }
+  };
+
   useEffect(() => {
     if (loading || saved || !id) return;
 
@@ -679,9 +693,21 @@ const handleSettingsChange = (
           </button>
         </div>
 
-        <div className="text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
-          {saving ? "Saving..." : saved ? "Saved" : "Not Saved"}
-        </div>
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={saving || saved}
+          className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition flex items-center gap-1.5 ${
+            saving
+              ? "bg-amber-50 text-amber-700 border-amber-200 cursor-wait"
+              : saved
+              ? "bg-green-50 text-green-700 border-green-200 cursor-default"
+              : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100 cursor-pointer shadow-sm animate-pulse"
+          }`}
+          title={saved ? "All changes saved" : "Click to save changes manually"}
+        >
+          {saving ? "Saving..." : saved ? "✓ Saved" : "⚠️ Not Saved (Click to Save)"}
+        </button>
       </div>
 
       <div className="mb-6 flex rounded-xl bg-gray-100 p-1 border border-gray-200">

@@ -16,12 +16,14 @@ interface Props {
 }
 
 export default function Experience({
-  experience,
+  experience = [],
   onChange,
 }: Props) {
+  const safeExperience = Array.isArray(experience) ? experience : [];
+
   const addExperience = () => {
     onChange([
-      ...experience,
+      ...safeExperience,
       {
         company: "",
         position: "",
@@ -39,13 +41,14 @@ export default function Experience({
     field: keyof ExperienceItem,
     value: string
   ) => {
-    const updated = [...experience];
-    updated[index][field] = value;
+    const updated = safeExperience.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    );
     onChange(updated);
   };
 
   const deleteExperience = (index: number) => {
-    const updated = experience.filter((_, i) => i !== index);
+    const updated = safeExperience.filter((_, i) => i !== index);
     onChange(updated);
   };
 

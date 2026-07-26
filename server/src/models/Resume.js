@@ -11,7 +11,7 @@ const resumeSchema = new mongoose.Schema(
     template: {
       type: String,
       enum: ["modern", "minimal", "ats", "creative", "executive", "tech", "academic", "sleek", "offcampus"],
-      default: "modern",
+      default: "offcampus",
     },
 
     themeColor: {

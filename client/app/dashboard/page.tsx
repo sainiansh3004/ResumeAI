@@ -430,7 +430,7 @@ function DashboardContent() {
                         Template:
                       </span>
                       <span className="text-[10px] font-semibold text-gray-600 uppercase">
-                        {resume.template || "modern"}
+                        {resume.template || "offcampus"}
                       </span>
                     </div>
                   </div>

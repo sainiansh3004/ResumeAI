@@ -29,7 +29,7 @@ export default function ResumeBuilder() {
   } = useUndoRedo<Resume>({
     title: "",
 
-    template: "modern",
+    template: "offcampus",
 
     themeColor: "blue",
 
@@ -258,7 +258,7 @@ useEffect(() => {
           const fetched = response.resume;
           const merged: Resume = {
             title: fetched.title || "Untitled Resume",
-            template: fetched.template || "modern",
+            template: fetched.template || "offcampus",
             themeColor: fetched.themeColor || "blue",
             sectionOrder: fetched.sectionOrder || [
               "summary",

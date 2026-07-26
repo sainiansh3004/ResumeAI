@@ -102,12 +102,19 @@ const updateResume = async (req, res) => {
     console.log("========== UPDATE REQUEST ==========");
     console.log(JSON.stringify(req.body, null, 2));
 
+    const updateData = { ...req.body };
+    delete updateData._id;
+    delete updateData.user;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+    delete updateData.__v;
+
     const resume = await Resume.findOneAndUpdate(
       {
         _id: req.params.id,
         user: req.user.id,
       },
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true,

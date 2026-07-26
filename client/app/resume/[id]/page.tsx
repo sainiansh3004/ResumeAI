@@ -528,11 +528,16 @@ const handleSettingsChange = (
   // ==========================
   // Auto Save & Manual Save
   // ==========================
+  const resumeRef = useRef(resume);
+  useEffect(() => {
+    resumeRef.current = resume;
+  }, [resume]);
+
   const handleManualSave = async () => {
     if (!id || saving) return;
     try {
       setSaving(true);
-      await updateResume(id, resume);
+      await updateResume(id, resumeRef.current);
       setSaving(false);
       setSaved(true);
     } catch (err) {
@@ -545,14 +550,16 @@ const handleSettingsChange = (
   useEffect(() => {
     if (loading || saved || !id) return;
 
+    const currentToSave = resume;
     const timer = setTimeout(async () => {
       try {
         setSaving(true);
-
-        await updateResume(id, resume);
-
+        await updateResume(id, currentToSave);
         setSaving(false);
-        setSaved(true);
+
+        if (resumeRef.current === currentToSave) {
+          setSaved(true);
+        }
       } catch (err) {
         console.error("Failed to save resume:", err);
         setSaving(false);

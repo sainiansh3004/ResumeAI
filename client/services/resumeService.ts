@@ -40,10 +40,17 @@ export const deleteResume = async (id: string) => {
 };
 
 export const updateResume = async (id: string, data: any) => {
-  console.log("========== Sending to backend ==========");
-  console.log(JSON.stringify(data, null, 2));
+  const payload = { ...data };
+  delete payload._id;
+  delete payload.user;
+  delete payload.createdAt;
+  delete payload.updatedAt;
+  delete payload.__v;
 
-  const res = await axios.put(`${API_URL}/${id}`, data, {
+  console.log("========== Sending to backend ==========");
+  console.log(JSON.stringify(payload, null, 2));
+
+  const res = await axios.put(`${API_URL}/${id}`, payload, {
     headers: {
       Authorization: `Bearer ${getToken()}`,
     },

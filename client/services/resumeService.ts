@@ -47,6 +47,25 @@ export const updateResume = async (id: string, data: any) => {
   delete payload.updatedAt;
   delete payload.__v;
 
+  const cleanArray = (arr: any[]) => {
+    if (!Array.isArray(arr)) return [];
+    return arr.map((item) => {
+      if (typeof item !== "object" || item === null) return item;
+      const cleaned = { ...item };
+      delete cleaned._id;
+      delete cleaned.id;
+      return cleaned;
+    });
+  };
+
+  if (payload.education) payload.education = cleanArray(payload.education);
+  if (payload.experience) payload.experience = cleanArray(payload.experience);
+  if (payload.projects) payload.projects = cleanArray(payload.projects);
+  if (payload.certifications) payload.certifications = cleanArray(payload.certifications);
+  if (payload.achievements) payload.achievements = cleanArray(payload.achievements);
+  if (payload.languages) payload.languages = cleanArray(payload.languages);
+  if (payload.interests) payload.interests = cleanArray(payload.interests);
+
   console.log("========== Sending to backend ==========");
   console.log(JSON.stringify(payload, null, 2));
 

@@ -540,10 +540,12 @@ const handleSettingsChange = (
       await updateResume(id, resumeRef.current);
       setSaving(false);
       setSaved(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to save resume:", err);
       setSaving(false);
       setSaved(false);
+      const msg = err.response?.data?.message || err.message || "Unknown error";
+      alert(`Save failed: ${msg}`);
     }
   };
 

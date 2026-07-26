@@ -109,6 +109,26 @@ const updateResume = async (req, res) => {
     delete updateData.updatedAt;
     delete updateData.__v;
 
+    // Helper to strip subdocument _id if not valid ObjectId
+    const cleanArray = (arr) => {
+      if (!Array.isArray(arr)) return [];
+      return arr.map((item) => {
+        if (typeof item !== "object" || item === null) return item;
+        const cleaned = { ...item };
+        delete cleaned._id;
+        delete cleaned.id;
+        return cleaned;
+      });
+    };
+
+    if (updateData.education) updateData.education = cleanArray(updateData.education);
+    if (updateData.experience) updateData.experience = cleanArray(updateData.experience);
+    if (updateData.projects) updateData.projects = cleanArray(updateData.projects);
+    if (updateData.certifications) updateData.certifications = cleanArray(updateData.certifications);
+    if (updateData.achievements) updateData.achievements = cleanArray(updateData.achievements);
+    if (updateData.languages) updateData.languages = cleanArray(updateData.languages);
+    if (updateData.interests) updateData.interests = cleanArray(updateData.interests);
+
     const resume = await Resume.findOneAndUpdate(
       {
         _id: req.params.id,

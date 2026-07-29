@@ -31,28 +31,34 @@ export default function A4Container({
   const dimensions = PAPER_DIMENSIONS[paperSize] || PAPER_DIMENSIONS.a4;
 
   useLayoutEffect(() => {
-    if (!fitToOnePage || !contentRef.current) {
-      setScale(1);
-      return;
-    }
-
-    // Force unscaled height check
+    if (!contentRef.current) return;
     const inner = contentRef.current;
-    const currentTransform = inner.style.transform;
-    const currentZoom = (inner.style as any).zoom;
-    inner.style.transform = "none";
-    (inner.style as any).zoom = "1";
 
-    const contentHeight = inner.scrollHeight || inner.offsetHeight;
-    const targetHeight = dimensions.height - (padding ? parseInt(padding, 10) * 2 : 48);
+    // Reset old page break spacers before recalculating
+    const existingSpacers = inner.querySelectorAll(".pdf-page-break-spacer");
+    existingSpacers.forEach((s) => s.remove());
 
-    inner.style.transform = currentTransform;
-    (inner.style as any).zoom = currentZoom;
+    if (fitToOnePage) {
+      // Force unscaled height check for 1-page fit
+      const currentTransform = inner.style.transform;
+      const currentZoom = (inner.style as any).zoom;
+      inner.style.transform = "none";
+      (inner.style as any).zoom = "1";
 
-    if (contentHeight > targetHeight) {
-      const calculatedScale = Math.min(1, targetHeight / (contentHeight + 5));
-      setScale(calculatedScale);
+      const contentHeight = inner.scrollHeight || inner.offsetHeight;
+      const targetHeight = dimensions.height - (padding ? parseInt(padding, 10) * 2 : 48);
+
+      inner.style.transform = currentTransform;
+      (inner.style as any).zoom = currentZoom;
+
+      if (contentHeight > targetHeight) {
+        const calculatedScale = Math.min(1, targetHeight / (contentHeight + 5));
+        setScale(calculatedScale);
+      } else {
+        setScale(1);
+      }
     } else {
+      // Multi-Page Natural Flow (Clean Unscaled Display)
       setScale(1);
     }
   }, [children, fitToOnePage, paperSize, dimensions.height, padding]);
@@ -69,7 +75,7 @@ export default function A4Container({
         minHeight: `${dimensions.height}px`,
         maxHeight: fitToOnePage ? `${dimensions.height}px` : "none",
         height: fitToOnePage ? `${dimensions.height}px` : "auto",
-        overflow: "hidden",
+        overflow: fitToOnePage ? "hidden" : "visible",
         padding: padding || "24px",
       }}
     >

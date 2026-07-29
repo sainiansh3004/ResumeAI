@@ -318,61 +318,76 @@ export default function TechTemplate({ resume }: Props) {
     <div className="w-full text-gray-800 bg-white min-h-[1100px] p-8 flex flex-col gap-5">
       {/* Header Block: Grid Layout for Developers */}
       <div className="border-b pb-4 mb-1 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-        <div>
-          <h1 className={`text-3xl font-black tracking-tight ${theme.primary}`}>
-            {personalInfo.fullName || "Your Name"}
-          </h1>
-          {personalInfo.headline && (
-            <p className="text-sm font-medium uppercase tracking-widest mt-1 text-gray-500">
-              {personalInfo.headline}
-            </p>
+        <div className="flex items-center gap-4">
+          {personalInfo.photo && (
+            <img
+              src={personalInfo.photo}
+              alt={personalInfo.fullName || "Profile Photo"}
+              className="h-16 w-16 rounded-full object-cover border-2 border-gray-300 shadow-sm flex-shrink-0"
+            />
           )}
+          <div>
+            <h1 className={`text-3xl font-black tracking-tight ${theme.primary}`}>
+              {personalInfo.fullName || "Your Name"}
+            </h1>
+            {personalInfo.headline && (
+              <p className="text-sm font-medium uppercase tracking-widest mt-1 text-gray-500">
+                {personalInfo.headline}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Contact info list grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-gray-600 max-w-md">
-          {personalInfo.email && (
-            <div>
-              <span className="font-bold text-gray-400 mr-1">EMAIL:</span>
-              <span className="font-medium text-gray-800">{personalInfo.email}</span>
-            </div>
-          )}
-          {personalInfo.phone && (
-            <div>
-              <span className="font-bold text-gray-400 mr-1">PHONE:</span>
-              <span className="font-medium text-gray-800">{personalInfo.phone}</span>
-            </div>
-          )}
+        {/* Contact info list */}
+        <div className="flex flex-col items-end text-right text-[11px] text-gray-600 gap-y-1 shrink-0">
+          <div className="flex flex-wrap justify-end gap-x-4 gap-y-1">
+            {personalInfo.email && (
+              <div>
+                <span className="font-bold text-gray-400 mr-1">EMAIL:</span>
+                <span className="font-medium text-gray-800">{personalInfo.email}</span>
+              </div>
+            )}
+            {personalInfo.phone && (
+              <div>
+                <span className="font-bold text-gray-400 mr-1">PHONE:</span>
+                <span className="font-medium text-gray-800">{personalInfo.phone}</span>
+              </div>
+            )}
+          </div>
+
           {personalInfo.address && (
             <div>
               <span className="font-bold text-gray-400 mr-1">LOC:</span>
               <span className="font-medium text-gray-800">{personalInfo.address}</span>
             </div>
           )}
-          {personalInfo.linkedin && (
-            <div>
-              <span className="font-bold text-gray-400 mr-1">IN:</span>
-              <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                LinkedIn
-              </a>
-            </div>
-          )}
-          {personalInfo.github && (
-            <div>
-              <span className="font-bold text-gray-400 mr-1">GH:</span>
-              <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                GitHub
-              </a>
-            </div>
-          )}
-          {personalInfo.portfolio && (
-            <div>
-              <span className="font-bold text-gray-400 mr-1">WEB:</span>
-              <a href={personalInfo.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                Portfolio
-              </a>
-            </div>
-          )}
+
+          <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 text-[11px]">
+            {personalInfo.linkedin && (
+              <div>
+                <span className="font-bold text-gray-400 mr-1">IN:</span>
+                <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  LinkedIn
+                </a>
+              </div>
+            )}
+            {personalInfo.github && (
+              <div>
+                <span className="font-bold text-gray-400 mr-1">GH:</span>
+                <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  GitHub
+                </a>
+              </div>
+            )}
+            {personalInfo.portfolio && (
+              <div>
+                <span className="font-bold text-gray-400 mr-1">WEB:</span>
+                <a href={personalInfo.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Portfolio
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

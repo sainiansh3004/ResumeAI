@@ -132,7 +132,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "summary":
               if (!resume.personalInfo.summary?.trim()) return null;
               return (
-                <section id="preview-section-summary" key="summary" className="mb-8">
+                <section id="preview-section-summary" key="summary" className="mb-8 break-inside-avoid">
                   <h2 className={`mb-3 border-b-2 pb-1 text-lg font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>
@@ -150,7 +150,7 @@ export default function ModernTemplate({ resume }: Props) {
                     {title}
                   </h2>
                   {resume.education.map((edu, index) => (
-                    <div key={index} className="mb-5 flex items-start justify-between">
+                    <div key={index} className="mb-5 flex items-start justify-between break-inside-avoid education-item">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
                           {edu.degree}
@@ -179,7 +179,7 @@ export default function ModernTemplate({ resume }: Props) {
                     {title}
                   </h2>
                   {resume.experience.map((exp, index) => (
-                    <div key={index} className="mb-6 flex items-start justify-between">
+                    <div key={index} className="mb-6 flex items-start justify-between break-inside-avoid experience-item">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900">{exp.position}</h3>
                         <p className="font-medium text-gray-700">
@@ -206,7 +206,7 @@ export default function ModernTemplate({ resume }: Props) {
             case "skills":
               if (!resume.skills || resume.skills.length === 0) return null;
               return (
-                <section id="preview-section-skills" key="skills" className="mt-4">
+                <section id="preview-section-skills" key="skills" className="mt-4 break-inside-avoid">
                   <h2 className={`mb-4 border-b-2 pb-1 text-xl font-bold ${theme.primary} ${theme.border}`}>
                     {title}
                   </h2>

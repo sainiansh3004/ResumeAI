@@ -67,34 +67,44 @@ export default function OffCampusTemplate({ resume }: Props) {
       {/* ================= HEADER ================= */}
       <header
         id="preview-section-personalInfo"
-        className="text-center border-b-2 pb-4 mb-4 border-gray-900"
+        className="border-b-2 pb-4 mb-4 border-gray-900 flex items-center justify-between gap-4"
       >
-        <h1 className={`text-3xl font-extrabold uppercase tracking-tight ${theme.primary}`}>
-          {personalInfo.fullName || "Your Name"}
-        </h1>
-
-        {personalInfo.headline && (
-          <p className="mt-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            {personalInfo.headline}
-          </p>
+        {personalInfo.photo && (
+          <img
+            src={personalInfo.photo}
+            alt={personalInfo.fullName || "Profile Photo"}
+            className="h-20 w-20 rounded-full object-cover border-2 border-gray-300 shadow-sm flex-shrink-0"
+          />
         )}
 
-        <div className="mt-2.5 flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-xs font-medium text-gray-800">
-          {[
-            personalInfo.phone,
-            personalInfo.email,
-            personalInfo.address,
-            personalInfo.linkedin,
-            personalInfo.github,
-            personalInfo.portfolio,
-          ]
-            .filter(Boolean)
-            .map((item, idx, arr) => (
-              <span key={idx} className="flex items-center gap-x-3">
-                <span>{item}</span>
-                {idx < arr.length - 1 && <span className="text-gray-400 font-bold">|</span>}
-              </span>
-            ))}
+        <div className="flex-1 text-center">
+          <h1 className={`text-3xl font-extrabold uppercase tracking-tight ${theme.primary}`}>
+            {personalInfo.fullName || "Your Name"}
+          </h1>
+
+          {personalInfo.headline && (
+            <p className="mt-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              {personalInfo.headline}
+            </p>
+          )}
+
+          <div className="mt-2.5 flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-xs font-medium text-gray-800">
+            {[
+              personalInfo.phone,
+              personalInfo.email,
+              personalInfo.address,
+              personalInfo.linkedin,
+              personalInfo.github,
+              personalInfo.portfolio,
+            ]
+              .filter(Boolean)
+              .map((item, idx, arr) => (
+                <span key={idx} className="flex items-center gap-x-3">
+                  <span>{item}</span>
+                  {idx < arr.length - 1 && <span className="text-gray-400 font-bold">|</span>}
+                </span>
+              ))}
+          </div>
         </div>
       </header>
 
@@ -123,7 +133,7 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "summary":
               if (!personalInfo.summary?.trim()) return null;
               return (
-                <section id="preview-section-summary" key="summary" className="mb-4">
+                <section id="preview-section-summary" key="summary" className="mb-4 break-inside-avoid">
                   <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -136,7 +146,7 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "skills":
               if (!skills || skills.length === 0) return null;
               return (
-                <section id="preview-section-skills" key="skills" className="mb-4">
+                <section id="preview-section-skills" key="skills" className="mb-4 break-inside-avoid">
                   <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -156,7 +166,7 @@ export default function OffCampusTemplate({ resume }: Props) {
                   </h2>
                   <div className="mt-2 space-y-3">
                     {experience.map((exp, index) => (
-                      <div key={index}>
+                      <div key={index} className="break-inside-avoid">
                         <div className="flex justify-between items-baseline text-xs">
                           <div>
                             <span className="font-bold text-gray-950">{exp.position || "Position"}</span>
@@ -189,12 +199,31 @@ export default function OffCampusTemplate({ resume }: Props) {
                   </h2>
                   <div className="mt-2 space-y-3">
                     {projects.map((project, index) => (
-                      <div key={index}>
+                      <div key={index} className="break-inside-avoid">
                         <div className="flex justify-between items-baseline text-xs">
                           <span className="font-bold text-gray-950">{project.title || "Project Title"}</span>
-                          <div className="text-[11px] text-blue-800 font-medium space-x-2">
-                            {project.github && <span>GitHub: {project.github}</span>}
-                            {project.liveDemo && <span>Demo: {project.liveDemo}</span>}
+                          <div className="text-[11px] text-blue-800 font-semibold space-x-2">
+                            {project.github && (
+                              <a
+                                href={project.github.startsWith("http") ? project.github : `https://${project.github}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:underline text-blue-800"
+                              >
+                                GitHub
+                              </a>
+                            )}
+                            {project.github && project.liveDemo && <span>•</span>}
+                            {project.liveDemo && (
+                              <a
+                                href={project.liveDemo.startsWith("http") ? project.liveDemo : `https://${project.liveDemo}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:underline text-blue-800"
+                              >
+                                Demo
+                              </a>
+                            )}
                           </div>
                         </div>
                         {project.technologies && project.technologies.length > 0 && (
@@ -222,7 +251,7 @@ export default function OffCampusTemplate({ resume }: Props) {
                   </h2>
                   <div className="mt-2 space-y-2">
                     {education.map((edu, index) => (
-                      <div key={index} className="flex justify-between items-baseline text-xs">
+                      <div key={index} className="break-inside-avoid flex justify-between items-baseline text-xs">
                         <div>
                           <span className="font-bold text-gray-950">{edu.college}</span>
                           <span className="text-gray-800">
@@ -246,7 +275,7 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "certifications":
               if (!certifications || certifications.length === 0) return null;
               return (
-                <section id="preview-section-certifications" key="certifications" className="mb-4">
+                <section id="preview-section-certifications" key="certifications" className="mb-4 break-inside-avoid">
                   <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>

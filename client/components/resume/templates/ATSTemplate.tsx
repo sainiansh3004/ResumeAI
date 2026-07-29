@@ -125,7 +125,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "summary":
               if (!personalInfo.summary?.trim()) return null;
               return (
-                <section id="preview-section-summary" key="summary" className="mt-6">
+                <section id="preview-section-summary" key="summary" className="mt-6 break-inside-avoid">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -138,7 +138,7 @@ export default function ATSTemplate({ resume }: Props) {
             case "skills":
               if (!skills || skills.length === 0) return null;
               return (
-                <section id="preview-section-skills" key="skills" className="mt-6">
+                <section id="preview-section-skills" key="skills" className="mt-6 break-inside-avoid">
                   <h2 className={`border-b pb-1 text-sm font-bold uppercase tracking-widest ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
@@ -155,7 +155,7 @@ export default function ATSTemplate({ resume }: Props) {
                   </h2>
                   <div className="mt-3 space-y-5">
                     {experience.map((exp, index) => (
-                      <div key={index}>
+                      <div key={index} className="break-inside-avoid experience-item">
                         <div className="flex items-start justify-between">
                           <div>
                             <h3 className="font-bold">{exp.position || "Position"}</h3>
@@ -187,30 +187,37 @@ export default function ATSTemplate({ resume }: Props) {
                   </h2>
                   <div className="mt-3 space-y-5">
                     {projects.map((project, index) => (
-                      <div key={index}>
+                      <div key={index} className="break-inside-avoid project-item">
                         <div className="flex items-start justify-between">
                           <h3 className="font-bold">{project.title || "Project Title"}</h3>
+                          <div className="text-[12px] font-semibold space-x-2">
+                            {project.github && (
+                              <a
+                                href={project.github.startsWith("http") ? project.github : `https://${project.github}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:underline text-blue-900"
+                              >
+                                GitHub
+                              </a>
+                            )}
+                            {project.github && project.liveDemo && <span>•</span>}
+                            {project.liveDemo && (
+                              <a
+                                href={project.liveDemo.startsWith("http") ? project.liveDemo : `https://${project.liveDemo}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:underline text-blue-900"
+                              >
+                                Demo
+                              </a>
+                            )}
+                          </div>
                         </div>
                         {project.technologies && project.technologies.length > 0 && (
                           <p className="mt-1">
                             <strong>Technologies:</strong> {project.technologies.join(", ")}
                           </p>
-                        )}
-                        {(project.github || project.liveDemo) && (
-                          <div className="mt-1 text-[12px]">
-                            {project.github && (
-                              <p>
-                                <strong>GitHub:</strong>{" "}
-                                <span className={theme.secondary}>{project.github}</span>
-                              </p>
-                            )}
-                            {project.liveDemo && (
-                              <p>
-                                <strong>Live:</strong>{" "}
-                                <span className={theme.secondary}>{project.liveDemo}</span>
-                              </p>
-                            )}
-                          </div>
                         )}
                         {project.description && <div className="mt-2 whitespace-pre-line">{project.description}</div>}
                       </div>
@@ -228,7 +235,7 @@ export default function ATSTemplate({ resume }: Props) {
                   </h2>
                   <div className="mt-3 space-y-4">
                     {education.map((edu, index) => (
-                      <div key={index}>
+                      <div key={index} className="break-inside-avoid education-item">
                         <div className="flex justify-between">
                           <div>
                             <h3 className="font-bold">

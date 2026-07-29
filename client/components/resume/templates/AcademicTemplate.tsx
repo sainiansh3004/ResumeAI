@@ -289,7 +289,14 @@ export default function AcademicTemplate({ resume }: Props) {
   return (
     <div className="w-full text-gray-800 bg-white min-h-[1100px] p-10 flex flex-col gap-6" style={{ fontFamily: "Georgia, serif" }}>
       {/* Header Block: Traditional Academic CV Header */}
-      <div className="text-center pb-4 mb-2">
+      <div className="flex flex-col items-center justify-center pb-4 mb-2">
+        {personalInfo.photo && (
+          <img
+            src={personalInfo.photo}
+            alt={personalInfo.fullName || "Profile Photo"}
+            className="h-20 w-20 rounded-full object-cover border-2 border-gray-300 shadow-sm mb-3"
+          />
+        )}
         <h1 className={`text-3xl font-normal tracking-tight ${theme.primary} mb-2`}>
           {personalInfo.fullName || "Your Name"}
         </h1>

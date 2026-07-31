@@ -42,8 +42,8 @@ const registerUser = async (req, res) => {
       otpExpires,
     });
 
-    // Send OTP Email asynchronously
-    await sendEmail({
+    // Send OTP Email asynchronously without blocking HTTP response
+    sendEmail({
       to: email,
       subject: "ResumeAI - Registration OTP Code 🚀",
       text: `Hi ${name}, your 6-digit OTP code for ResumeAI registration is: ${otp}. It will expire in 10 minutes.`,
@@ -173,7 +173,7 @@ const resendOtp = async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendEmail({
+    sendEmail({
       to: email,
       subject: "ResumeAI - Resend Verification OTP Code 🔐",
       text: `Your new OTP code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
@@ -240,8 +240,8 @@ const loginUser = async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await user.save();
 
-    // Send OTP Email
-    await sendEmail({
+    // Send OTP Email asynchronously without blocking HTTP response
+    sendEmail({
       to: email,
       subject: "ResumeAI - Your Sign-In OTP Code 🔐",
       text: `Hi ${user.name}, your 6-digit OTP code for signing in to ResumeAI is: ${otp}. It will expire in 10 minutes.`,
@@ -429,7 +429,7 @@ const sendPremiumOtp = async (req, res) => {
     await user.save();
 
     // Send real email OTP for premium activation
-    await sendEmail({
+    sendEmail({
       to: user.email,
       subject: "ResumeAI - Premium Activation Real Email Verification OTP",
       text: `Your OTP to verify your real email and activate Premium is: ${otp}`,

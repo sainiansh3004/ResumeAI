@@ -18,7 +18,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
     html,
   };
 
-  // Attempt 1: Gmail SMTP Port 465 (SSL)
+  // Attempt 1: Gmail SMTP Port 465 (SSL) with fast timeouts
   try {
     const transporter1 = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -26,7 +26,9 @@ const sendEmail = async ({ to, subject, html, text }) => {
       secure: true,
       auth: { user, pass },
       tls: { rejectUnauthorized: false },
-      connectionTimeout: 15000,
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 5000,
     });
     const info = await transporter1.sendMail(mailOptions);
     console.log("✅ REAL EMAIL DELIVERED VIA GMAIL SMTP (465)! MessageId:", info.messageId);
@@ -48,7 +50,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
     console.error("⚠️ Gmail Service failed:", err2.message);
   }
 
-  // Attempt 3: Gmail SMTP Port 587 (TLS)
+  // Attempt 3: Gmail SMTP Port 587 (TLS) with fast timeouts
   try {
     const transporter3 = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -56,14 +58,16 @@ const sendEmail = async ({ to, subject, html, text }) => {
       secure: false,
       auth: { user, pass },
       tls: { rejectUnauthorized: false },
-      connectionTimeout: 15000,
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 5000,
     });
     const info = await transporter3.sendMail(mailOptions);
     console.log("✅ REAL EMAIL DELIVERED VIA GMAIL SMTP (587)! MessageId:", info.messageId);
     return { success: true, info };
   } catch (err3) {
     console.error("❌ All Gmail SMTP delivery attempts failed:", err3.message);
-    throw new Error(`Email delivery failed: ${err3.message}`);
+    return { success: false, error: err3.message };
   }
 };
 

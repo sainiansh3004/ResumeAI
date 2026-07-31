@@ -8,6 +8,67 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Unstop-Style Clean Email Template Builder
+const buildEmailTemplate = ({ name, otp, message }) => {
+  const greeting = name ? `Hi <strong>${name}</strong>,` : "Hi there,";
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 32px 16px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 28px 32px 20px 32px; border-bottom: 1px solid #f1f5f9;">
+                    <div style="font-size: 22px; font-weight: 900; color: #2563eb; letter-spacing: -0.5px; font-family: sans-serif;">
+                      ResumeAI
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 32px; font-size: 15px; line-height: 1.6; color: #334155;">
+                    <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">${greeting}</p>
+                    <p style="margin: 0 0 24px 0; color: #334155;">${message || "Here is your 6-digit verification code to complete your ResumeAI account authentication:"}</p>
+                    
+                    <!-- OTP Code Box -->
+                    <div style="background-color: #f1f5f9; border-radius: 12px; padding: 20px; text-align: center; margin: 0 0 24px 0; border: 1px solid #e2e8f0;">
+                      <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; font-family: 'Courier New', Courier, monospace;">${otp}</span>
+                    </div>
+
+                    <p style="margin: 0 0 24px 0; font-size: 13px; color: #64748b;">
+                      This verification code is valid for <strong>10 minutes</strong>. If you did not request this code, please ignore this email.
+                    </p>
+
+                    <p style="margin: 0; font-size: 14px; color: #475569;">
+                      Regards,<br>
+                      <strong style="color: #0f172a;">Team ResumeAI</strong>
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 16px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; font-size: 12px; color: #94a3b8;">
+                    © ${new Date().getFullYear()} ResumeAI. All rights reserved.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+};
+
 // ================= REGISTER =================
 const registerUser = async (req, res) => {
   try {
@@ -45,19 +106,13 @@ const registerUser = async (req, res) => {
     // Send OTP Email asynchronously without blocking HTTP response
     sendEmail({
       to: email,
-      subject: "ResumeAI - Registration OTP Code 🚀",
-      text: `Hi ${name}, your 6-digit OTP code for ResumeAI registration is: ${otp}. It will expire in 10 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-          <h2 style="color: #2563eb; text-align: center;">ResumeAI Registration OTP 🚀</h2>
-          <p>Hi <strong>${name}</strong>,</p>
-          <p>Thank you for signing up for ResumeAI! Please enter the 6-digit verification code below to complete your registration:</p>
-          <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
-          </div>
-          <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
-        </div>
-      `,
+      subject: "Here's Your ResumeAI Verification Code.",
+      text: `Hi ${name}, your 6-digit verification code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
+      html: buildEmailTemplate({
+        name,
+        otp,
+        message: "Thank you for signing up for ResumeAI! Please enter the 6-digit verification code below to complete your registration:",
+      }),
     }).catch((e) => console.error("Register OTP email error:", e));
 
     res.status(201).json({
@@ -175,19 +230,13 @@ const resendOtp = async (req, res) => {
 
     sendEmail({
       to: email,
-      subject: "ResumeAI - Resend Verification OTP Code 🔐",
-      text: `Your new OTP code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-          <h2 style="color: #2563eb; text-align: center;">ResumeAI Verification OTP 🔐</h2>
-          <p>Hi <strong>${user.name}</strong>,</p>
-          <p>Here is your new 6-digit verification code:</p>
-          <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
-          </div>
-          <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
-        </div>
-      `,
+      subject: "Here's Your ResumeAI Verification Code.",
+      text: `Your 6-digit verification code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
+      html: buildEmailTemplate({
+        name: user.name,
+        otp,
+        message: "Here is your new 6-digit verification code to complete your ResumeAI account verification:",
+      }),
     }).catch((e) => console.error("Background resend error:", e));
 
     res.status(200).json({
@@ -243,19 +292,13 @@ const loginUser = async (req, res) => {
 
       sendEmail({
         to: email,
-        subject: "ResumeAI - Your Sign-In OTP Code 🔐",
+        subject: "Here's Your ResumeAI Verification Code.",
         text: `Hi ${user.name}, your 6-digit OTP code for signing in to ResumeAI is: ${otp}. It will expire in 10 minutes.`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-            <h2 style="color: #2563eb; text-align: center;">ResumeAI Sign-In OTP 🔐</h2>
-            <p>Hi <strong>${user.name}</strong>,</p>
-            <p>We received a sign-in attempt for your account. Please enter the 6-digit OTP code below to verify your login:</p>
-            <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-              <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
-            </div>
-            <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
-          </div>
-        `,
+        html: buildEmailTemplate({
+          name: user.name,
+          otp,
+          message: "We received a sign-in attempt for your ResumeAI account. Please enter the 6-digit verification code below to verify your login:",
+        }),
       }).catch((e) => console.error("Login OTP email error:", e));
 
       return res.status(400).json({
@@ -326,19 +369,13 @@ const forgotPassword = async (req, res) => {
 
     await sendEmail({
       to: email,
-      subject: "ResumeAI - Password Reset OTP",
-      text: `Your OTP to reset your password is: ${resetOtp}. It will expire in 10 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; rounded-xl: 12px;">
-          <h2 style="color: #dc2626; text-align: center;">Reset Your Password</h2>
-          <p>Hi <strong>${user.name}</strong>,</p>
-          <p>We received a request to reset your ResumeAI account password. Use the OTP below to set a new password:</p>
-          <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #dc2626;">${resetOtp}</span>
-          </div>
-          <p style="color: #6b7280; font-size: 14px;">This OTP expires in 10 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
-        </div>
-      `,
+      subject: "Here's Your ResumeAI Password Reset Code.",
+      text: `Your 6-digit code to reset your ResumeAI password is: ${resetOtp}. It will expire in 10 minutes.`,
+      html: buildEmailTemplate({
+        name: user.name,
+        otp: resetOtp,
+        message: "We received a request to reset your ResumeAI account password. Use the 6-digit code below to set a new password:",
+      }),
     });
 
     res.status(200).json({
@@ -455,19 +492,13 @@ const sendPremiumOtp = async (req, res) => {
     // Send real email OTP for premium activation
     sendEmail({
       to: user.email,
-      subject: "ResumeAI - Premium Activation Real Email Verification OTP",
-      text: `Your OTP to verify your real email and activate Premium is: ${otp}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-          <h2 style="color: #2563eb; text-align: center;">ResumeAI Premium Activation OTP 👑</h2>
-          <p>Hi <strong>${user.name}</strong>,</p>
-          <p>Please enter the 6-digit verification code below to verify your real email and activate your Premium subscription:</p>
-          <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
-          </div>
-          <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
-        </div>
-      `,
+      subject: "Here's Your ResumeAI Verification Code.",
+      text: `Your 6-digit verification code to activate ResumeAI Premium is: ${otp}`,
+      html: buildEmailTemplate({
+        name: user.name,
+        otp,
+        message: "Please enter the 6-digit verification code below to verify your email and activate your ResumeAI Premium subscription:",
+      }),
     }).catch((e) => console.error("Premium OTP email error:", e));
 
     res.status(200).json({

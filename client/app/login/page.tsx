@@ -23,15 +23,22 @@ export default function LoginPage() {
       setError("");
       setUnverifiedEmail("");
       const response = await loginUser(formData);
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-      window.location.href = "/dashboard";
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        window.location.href = "/dashboard";
+      } else if (response.requireOtp) {
+        setUnverifiedEmail(response.email || formData.email);
+        setError("Your email address is not verified yet. Please complete 6-digit OTP verification.");
+      } else {
+        setError(response.message || "Login failed. Please try again.");
+      }
     } catch (err: any) {
       if (err.response?.data?.requireOtp) {
         setUnverifiedEmail(err.response?.data?.email || formData.email);
-        setError("Your email address is not verified yet. Please complete OTP verification.");
+        setError("Your email address is not verified yet. Please complete 6-digit OTP verification.");
       } else {
-        setError(err.response?.data?.message || "Login failed. Please try again.");
+        setError(err.response?.data?.message || "Login failed. Please check your credentials.");
       }
     } finally {
       setLoading(false);

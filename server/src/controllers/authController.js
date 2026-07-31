@@ -234,36 +234,60 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate fresh OTP code on every login
-    const otp = generateOTP();
-    user.otp = otp;
-    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-    await user.save();
+    // If user is not verified, require OTP verification
+    if (user.isVerified === false) {
+      const otp = generateOTP();
+      user.otp = otp;
+      user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await user.save();
 
-    // Send OTP Email asynchronously without blocking HTTP response
-    sendEmail({
-      to: email,
-      subject: "ResumeAI - Your Sign-In OTP Code 🔐",
-      text: `Hi ${user.name}, your 6-digit OTP code for signing in to ResumeAI is: ${otp}. It will expire in 10 minutes.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-          <h2 style="color: #2563eb; text-align: center;">ResumeAI Sign-In OTP 🔐</h2>
-          <p>Hi <strong>${user.name}</strong>,</p>
-          <p>We received a sign-in attempt for your account. Please enter the 6-digit OTP code below to verify your login:</p>
-          <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
+      sendEmail({
+        to: email,
+        subject: "ResumeAI - Your Sign-In OTP Code 🔐",
+        text: `Hi ${user.name}, your 6-digit OTP code for signing in to ResumeAI is: ${otp}. It will expire in 10 minutes.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+            <h2 style="color: #2563eb; text-align: center;">ResumeAI Sign-In OTP 🔐</h2>
+            <p>Hi <strong>${user.name}</strong>,</p>
+            <p>We received a sign-in attempt for your account. Please enter the 6-digit OTP code below to verify your login:</p>
+            <div style="background-color: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
+              <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1e293b;">${otp}</span>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
           </div>
-          <p style="color: #6b7280; font-size: 14px;">This code will expire in 10 minutes.</p>
-        </div>
-      `,
-    }).catch((e) => console.error("Login OTP email error:", e));
+        `,
+      }).catch((e) => console.error("Login OTP email error:", e));
+
+      return res.status(400).json({
+        success: false,
+        requireOtp: true,
+        email: user.email,
+        otp: user.otp,
+        message: "Your email is not verified yet. A 6-digit verification code has been sent to your email address.",
+      });
+    }
+
+    // Issue JWT token for verified user login
+    const jwtSecret = process.env.JWT_SECRET || "resumeai_jwt_secret_key_2026";
+    const token = jwt.sign(
+      { id: user._id },
+      jwtSecret,
+      { expiresIn: "7d" }
+    );
 
     res.status(200).json({
       success: true,
-      requireOtp: true,
-      email: user.email,
-      otp: user.otp,
-      message: `Password verified! A 6-digit OTP code has been sent to ${email}.`,
+      message: "Login successful!",
+      token,
+      user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: true,
+        isPro: user.isPro || false,
+        plan: user.isPro ? "pro" : "free",
+      },
     });
   } catch (error) {
     console.error("Login Error:", error);

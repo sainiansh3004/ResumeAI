@@ -93,4 +93,14 @@ export const verifyPremiumOtp = async (token: string, otp: string) => {
   return response.data;
 };
 
+// Social Login (Google / LinkedIn)
+export const socialLogin = async (data: {
+  provider: "google" | "linkedin";
+  email?: string;
+  name?: string;
+}) => {
+  const response = await API.post("/social-login", data);
+  return response.data;
+};
+
 export default API;

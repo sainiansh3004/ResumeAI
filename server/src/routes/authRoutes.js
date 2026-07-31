@@ -11,6 +11,7 @@ const {
   getProfile,
   sendPremiumOtp,
   verifyPremiumOtp,
+  socialLogin,
 } = require("../controllers/authController");
 
 const protect = require("../middleware/authMiddleware");
@@ -22,6 +23,8 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 
 router.post("/login", loginUser);
+
+router.post("/social-login", socialLogin);
 
 router.post("/forgot-password", forgotPassword);
 

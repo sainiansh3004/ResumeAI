@@ -562,6 +562,57 @@ const verifyPremiumOtp = async (req, res) => {
   }
 };
 
+// ================= SOCIAL LOGIN (GOOGLE & LINKEDIN) =================
+const socialLogin = async (req, res) => {
+  try {
+    const { provider, name, email } = req.body;
+    const prov = (provider || "google").toLowerCase();
+    const targetEmail = (email || `${prov}_user_${Date.now()}@resumeai.com`).toLowerCase().trim();
+    const targetName = name || (prov === "linkedin" ? "LinkedIn User" : "Google User");
+
+    let user = await User.findOne({ email: targetEmail });
+
+    if (!user) {
+      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
+      user = await User.create({
+        name: targetName,
+        email: targetEmail,
+        password: randomPassword,
+        isVerified: true,
+        isPro: true,
+      });
+    } else {
+      user.isVerified = true;
+      await user.save();
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || "resumeai_jwt_secret_key_2026";
+    const token = jwt.sign(
+      { id: user._id },
+      jwtSecret,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Signed in with ${prov === "linkedin" ? "LinkedIn" : "Google"} successfully!`,
+      token,
+      user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: true,
+        isPro: user.isPro || false,
+        plan: user.isPro ? "pro" : "free",
+      },
+    });
+  } catch (error) {
+    console.error("Social Login Error:", error);
+    res.status(500).json({ success: false, message: "Social login failed." });
+  }
+};
+
 module.exports = {
   registerUser,
   verifyOtp,
@@ -572,4 +623,5 @@ module.exports = {
   getProfile,
   sendPremiumOtp,
   verifyPremiumOtp,
+  socialLogin,
 };

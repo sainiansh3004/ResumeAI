@@ -1,106 +1,76 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   getMyResumes,
   createResume,
-  updateResume,
   deleteResume,
   duplicateResume,
 } from "@/services/resumeService";
-import { parsePdfResume } from "@/services/aiService";
+import { Resume } from "@/types/resume";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/services/billingService";
-import PortfolioCustomizer from "@/components/portfolio/PortfolioCustomizer";
-import {
-  FileText,
-  Plus,
-  Trash2,
-  Copy,
-  Edit,
-  Sparkles,
-  LogOut,
-  TrendingUp,
-  Award,
-  ShieldCheck,
-  Check,
-  RefreshCw,
-  CreditCard,
-  Upload,
-} from "lucide-react";
+import { getMyPortfolio, convertResumeToPortfolio } from "@/services/portfolioService";
 
-interface User {
-  name?: string;
-  email?: string;
-  isPro?: boolean;
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
 }
 
-interface Resume {
-  _id: string;
-  title: string;
-  template: string;
-  createdAt: string;
-}
-
-// Dynamically load Razorpay Checkout SDK script
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    if ((window as any).Razorpay) {
-      resolve(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
-
-function DashboardContent() {
+export default function DashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [user, setUser] = useState<User>({});
+  const [user, setUser] = useState<any>(null);
   const [resumes, setResumes] = useState<Resume[]>([]);
+  const [portfolio, setPortfolio] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isPro, setIsPro] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgrading, setUpgrading] = useState(false);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
-  const dashboardFileInputRef = useRef<HTMLInputElement>(null);
+  const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [subdomainInput, setSubdomainInput] = useState("");
+  const [selectedResumeIdForPortfolio, setSelectedResumeIdForPortfolio] = useState<string | null>(null);
+  const [portfolioModalOpen, setPortfolioModalOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
     if (!token) {
-      router.replace("/login");
+      router.push("/login");
       return;
     }
 
-    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-      if (parsed.isPro) {
-        setIsPro(true);
-        localStorage.setItem("pro_member", "true");
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user state");
       }
     }
 
-    if (localStorage.getItem("pro_member") === "true") {
-      setIsPro(true);
-    }
-
-    loadResumes();
+    loadDashboardData();
   }, []);
 
-  const loadResumes = async () => {
+  const loadDashboardData = async () => {
     try {
-      const response = await getMyResumes();
-      setResumes(response.resumes || []);
-    } catch (error) {
-      console.error(error);
+      setLoading(true);
+      const resData = await getMyResumes();
+      setResumes(resData.data || resData.resumes || (Array.isArray(resData) ? resData : []));
+
+      try {
+        const portRes = await getMyPortfolio();
+        if (portRes.success && portRes.portfolio) {
+          setPortfolio(portRes.portfolio);
+        }
+      } catch (e) {
+        // Portfolio might not exist yet
+      }
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        localStorage.clear();
+        router.push("/login");
+      }
     } finally {
       setLoading(false);
     }
@@ -108,354 +78,311 @@ function DashboardContent() {
 
   const handleCreateResume = async () => {
     try {
-      const response = await createResume();
-      router.push(`/resume/${response.resume._id}`);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to create resume");
-    }
-  };
-
-  const handleImportDashboardResume = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingPdf(true);
-    try {
-      if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
-        const parseRes = await parsePdfResume(file);
-        if (parseRes.success && parseRes.resume) {
-          const parsed = parseRes.resume;
-          const createdRes = await createResume(parsed.title || "Uploaded PDF Resume");
-          const resumeId = createdRes.resume._id;
-          await updateResume(resumeId, parsed);
-          router.push(`/resume/${resumeId}`);
-          return;
-        } else {
-          alert("Failed to parse PDF resume.");
-        }
-      } else {
-        const text = await file.text();
-        const json = JSON.parse(text);
-        const createdRes = await createResume(json.title || "Imported JSON Resume");
-        const resumeId = createdRes.resume._id;
-        await updateResume(resumeId, json);
+      setCreating(true);
+      const newRes = await createResume("Untitled Resume");
+      const resumeId = newRes.data?._id || newRes._id;
+      if (resumeId) {
         router.push(`/resume/${resumeId}`);
-        return;
+      } else {
+        loadDashboardData();
       }
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to import resume file. Make sure it has readable text.");
+      alert(err.response?.data?.message || "Failed to create resume.");
     } finally {
-      setUploadingPdf(false);
-      if (e.target) e.target.value = "";
+      setCreating(false);
     }
   };
 
-  const handleDeleteResume = async (id: string) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!confirm("Are you sure you want to delete this resume?")) return;
     try {
       await deleteResume(id);
-      loadResumes();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to delete resume");
+      setResumes((prev) => prev.filter((r) => r._id !== id));
+    } catch (err: any) {
+      alert("Failed to delete resume.");
     }
   };
 
-  const handleDuplicateResume = async (id: string) => {
+  const handleDuplicate = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
-      await duplicateResume(id);
-      loadResumes();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to duplicate resume");
+      const dup = await duplicateResume(id);
+      const newResume = dup.data || dup;
+      setResumes((prev) => [newResume, ...prev]);
+    } catch (err: any) {
+      alert("Failed to duplicate resume.");
     }
-  };
-
-  const handleEditResume = (id: string) => {
-    router.push(`/resume/${id}`);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("pro_member");
+    localStorage.clear();
     router.push("/login");
   };
 
-  const handleUpgradeToPro = async () => {
-    setUpgrading(true);
+  const handlePublishPortfolio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedResumeIdForPortfolio || !subdomainInput.trim()) return;
+
     try {
-      // 1. Load Checkout SDK
-      const isScriptLoaded = await loadRazorpayScript();
-      if (!isScriptLoaded) {
-        alert("Failed to load payment gateway script. Please verify internet connection.");
-        setUpgrading(false);
-        return;
+      const res = await convertResumeToPortfolio(selectedResumeIdForPortfolio, subdomainInput.trim());
+      if (res.success) {
+        setPortfolio(res.portfolio);
+        setPortfolioModalOpen(false);
+        alert(`Portfolio published successfully at ${res.portfolio.subdomain}.resumeai.site!`);
       }
-
-      // 2. Request backend order creation
-      const res = await createRazorpayOrder();
-      
-      if (res.demoMode) {
-        // Fallback demo setup for local development
-        setTimeout(async () => {
-          await verifyRazorpayPayment({
-            razorpay_order_id: res.order.id,
-            razorpay_payment_id: "pay_demo_success",
-            razorpay_signature: "sig_demo_success",
-          });
-          setIsPro(true);
-          localStorage.setItem("pro_member", "true");
-          const storedUser = localStorage.getItem("user");
-          if (storedUser) {
-            const parsed = JSON.parse(storedUser);
-            parsed.isPro = true;
-            localStorage.setItem("user", JSON.stringify(parsed));
-          }
-          setUpgrading(false);
-          setShowUpgradeModal(false);
-          alert("✅ Pro Activated! (Demo mode — add RAZORPAY_KEY_ID in backend env for live UPI/Cards payments)");
-        }, 1500);
-        return;
-      }
-
-      // 3. Open Razorpay live overlay checkout modal
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder_id",
-        amount: res.order.amount,
-        currency: res.order.currency,
-        name: "ResumeAI Pro Plan",
-        description: "Access to 8 Premium Templates, Cover Letter AI, & Portfolio Sites hosting",
-        order_id: res.order.id,
-        handler: async function (response: any) {
-          try {
-            // Verify payment signature
-            await verifyRazorpayPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            setIsPro(true);
-            localStorage.setItem("pro_member", "true");
-            const storedUser = localStorage.getItem("user");
-            if (storedUser) {
-              const parsed = JSON.parse(storedUser);
-              parsed.isPro = true;
-              localStorage.setItem("user", JSON.stringify(parsed));
-            }
-            setShowUpgradeModal(false);
-            alert("🎉 Awesome! Your account is upgraded to ResumeAI Pro.");
-          } catch (err) {
-            console.error("Verification failed:", err);
-            alert("Verification failed. Please contact support.");
-          }
-        },
-        prefill: {
-          name: user.name || "",
-          email: user.email || "",
-        },
-        theme: {
-          color: "#2563eb", // Royal blue
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-      setUpgrading(false);
-    } catch (error: any) {
-      console.error("Razorpay order setup error:", error);
-      alert("Payment checkout failed. Please try again.");
-      setUpgrading(false);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to publish portfolio.");
     }
   };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-semibold text-gray-500">Loading Dashboard...</p>
-        </div>
-      </main>
-    );
-  }
+  const handleUpgradeToPro = async (planType: "monthly" | "yearly" = "yearly") => {
+    try {
+      const orderData = await createRazorpayOrder(planType);
+      
+      // Load Razorpay script if not already present
+      if (!window.Razorpay) {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+        await new Promise((resolve) => (script.onload = resolve));
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency || "INR",
+        name: "ResumeAI Pro Pass",
+        description: "Unlimited AI Generation & Premium Templates",
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await verifyRazorpayPayment(response);
+            if (verifyRes.success) {
+              alert("Congratulations! You are now a Pro member!");
+              const updatedUser = { ...user, isPro: true, plan: "pro" };
+              setUser(updatedUser);
+              localStorage.setItem("user", JSON.stringify(updatedUser));
+              setUpgradeModalOpen(false);
+            }
+          } catch (err) {
+            alert("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to initiate checkout.");
+    }
+  };
+
+  const filteredResumes = resumes.filter((r) =>
+    (r.title || "Untitled Resume").toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      {/* Top Banner Header */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">
-              R
-            </div>
-            <div>
-              <h1 className="text-lg font-black tracking-tight text-gray-900">ResumeAI</h1>
-              <p className="text-xs text-gray-400 font-semibold">SaaS Dashboard</p>
-            </div>
+            <Link href="/" className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-base shadow-md shadow-blue-500/20">
+                R
+              </div>
+              <span className="text-xl font-black tracking-tight text-gray-950">ResumeAI</span>
+            </Link>
+            <span className="hidden sm:inline-block text-xs font-semibold text-gray-400 border-l border-gray-200 pl-3">
+              Dashboard
+            </span>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-sm font-bold text-gray-900">{user.name}</div>
-              <div className="text-xs text-gray-500 font-medium">{user.email}</div>
-            </div>
+            {user?.isPro ? (
+              <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow-sm">
+                ✦ PRO MEMBER
+              </span>
+            ) : (
+              <button
+                onClick={() => setUpgradeModalOpen(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition hover:-translate-y-0.5"
+              >
+                ⚡ Upgrade to Pro
+              </button>
+            )}
 
-            <button
-              onClick={handleLogout}
-              className="p-2.5 border rounded-lg text-gray-400 hover:text-red-600 hover:border-red-100 transition shadow-sm cursor-pointer"
-              title="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="h-6 w-px bg-gray-200" />
+
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-gray-900">{user?.name || "User"}</p>
+                <p className="text-[10px] text-gray-400">{user?.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-xs font-semibold text-gray-500 hover:text-red-600 transition px-2 py-1"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Stats Grid */}
-      <div className="max-w-6xl w-full mx-auto px-6 pt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-10 flex-1 w-full space-y-8">
+        {/* Top Banner & Quick Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200/80 shadow-sm">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Resumes</span>
-            <div className="text-2xl font-black text-gray-900">{resumes.length}</div>
+            <h1 className="text-2xl font-black text-gray-950">Welcome back, {user?.name?.split(" ")[0] || "there"}!</h1>
+            <p className="text-xs text-gray-500">
+              Manage your resumes, edit designs, build your portfolio, and export ATS-optimized PDFs.
+            </p>
           </div>
-          <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-inner">
-            <FileText className="h-6 w-6" />
-          </div>
-        </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Templates Used</span>
-            <div className="text-2xl font-black text-gray-900">
-              {Array.from(new Set(resumes.map((r) => r.template))).length}
-            </div>
-          </div>
-          <div className="h-12 w-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shadow-inner">
-            <Award className="h-6 w-6" />
-          </div>
-        </div>
-
-        {/* Member Tier Card */}
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl text-white shadow-md flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Account Plan</span>
-            <div className="text-xl font-black tracking-tight flex items-center gap-1.5">
-              {isPro ? (
-                <>
-                  <ShieldCheck className="h-5 w-5 text-yellow-400" />
-                  Pro Member
-                </>
-              ) : (
-                "Free Tier"
-              )}
-            </div>
-          </div>
-          {!isPro && (
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="px-3.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold rounded-lg text-xs transition cursor-pointer shadow-md shadow-yellow-500/20"
+              onClick={handleCreateResume}
+              disabled={creating}
+              className="px-5 py-3 rounded-2xl text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 flex items-center gap-2"
+              style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
             >
-              Upgrade
+              <span>+</span>
+              {creating ? "Creating..." : "Create New Resume"}
             </button>
-          )}
+          </div>
         </div>
-      </div>
 
-      {/* Main Layout sections */}
-      <div className="max-w-6xl w-full mx-auto px-6 py-8 space-y-8 flex-grow">
-        {/* Resumes Section */}
+        {/* Portfolio Status Section if existing */}
+        {portfolio && (
+          <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-blue-500/30 text-blue-200 px-3 py-1 rounded-full border border-blue-400/30">
+                🌐 Live Portfolio Site
+              </span>
+              <h2 className="text-lg font-bold">Your Portfolio is Live!</h2>
+              <p className="text-xs text-blue-200">
+                Subdomain: <span className="font-mono text-white font-bold">{portfolio.subdomain}.resumeai.site</span>
+              </p>
+            </div>
+            <Link
+              href={`/portfolio/${portfolio.subdomain}`}
+              target="_blank"
+              className="px-5 py-2.5 rounded-xl bg-white text-blue-900 font-bold text-xs hover:bg-blue-50 transition shadow-md"
+            >
+              View Live Portfolio →
+            </Link>
+          </div>
+        )}
+
+        {/* Resumes Controls */}
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-extrabold text-gray-900">My Saved Resumes</h2>
-            <div className="flex items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-gray-200 pb-4">
+            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
+              My Resumes
+              <span className="text-xs font-bold bg-gray-200 text-gray-700 px-2.5 py-0.5 rounded-full">
+                {resumes.length}
+              </span>
+            </h2>
+
+            <div className="w-full sm:w-72">
               <input
-                type="file"
-                ref={dashboardFileInputRef}
-                onChange={handleImportDashboardResume}
-                accept=".json,.pdf,application/json,application/pdf"
-                className="hidden"
+                type="text"
+                placeholder="Search resumes..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
-              <button
-                onClick={() => dashboardFileInputRef.current?.click()}
-                disabled={uploadingPdf}
-                className="px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                {uploadingPdf ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-                    <span>Parsing PDF...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 text-blue-600" />
-                    <span>Upload Resume (PDF/JSON)</span>
-                  </>
-                )}
-              </button>
+            </div>
+          </div>
+
+          {/* Resumes Grid */}
+          {loading ? (
+            <div className="py-20 text-center text-xs text-gray-400">Loading your resumes...</div>
+          ) : filteredResumes.length === 0 ? (
+            <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-2xl font-black mx-auto">
+                📄
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-gray-900">No resumes found</h3>
+                <p className="text-xs text-gray-500">
+                  {search ? "No resumes match your search criteria." : "Get started by creating your first resume!"}
+                </p>
+              </div>
               <button
                 onClick={handleCreateResume}
-                className="px-4.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-md shadow-blue-100"
+                disabled={creating}
+                className="px-6 py-3 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"
               >
-                <Plus className="h-4 w-4" />
-                Create Resume
+                + Create Resume
               </button>
-            </div>
-          </div>
-
-          {resumes.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-150 p-12 text-center shadow-sm">
-              <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-gray-900">No Resumes Found</h3>
-              <p className="text-sm text-gray-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                Start by creating your first CV document. You can customize layout and contents live.
-              </p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resumes.map((resume) => (
+              {filteredResumes.map((resume) => (
                 <div
                   key={resume._id}
-                  className="bg-white rounded-2xl border border-gray-200/80 p-6 flex flex-col justify-between hover:shadow-lg transition group relative"
+                  onClick={() => router.push(`/resume/${resume._id}`)}
+                  className="group bg-white rounded-3xl border border-gray-200/80 hover:border-blue-500/50 hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between space-y-6 cursor-pointer relative"
                 >
-                  <div className="space-y-1.5">
-                    <h3 className="text-md font-bold text-gray-950 truncate pr-6">
-                      {resume.title}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        Template:
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-100">
+                        {resume.template || "modern"} template
                       </span>
-                      <span className="text-[10px] font-semibold text-gray-600 uppercase">
-                        {resume.template || "offcampus"}
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        {resume.updatedAt ? new Date(resume.updatedAt).toLocaleDateString() : "Recently"}
                       </span>
                     </div>
+
+                    <h3 className="text-base font-bold text-gray-950 group-hover:text-blue-600 transition">
+                      {resume.title || "Untitled Resume"}
+                    </h3>
+
+                    <p className="text-xs text-gray-500 line-clamp-2">
+                      {resume.personalInfo?.summary || resume.personalInfo?.headline || "No summary provided yet."}
+                    </p>
                   </div>
 
-                  <div className="mt-8 pt-4 border-t border-gray-50 flex gap-2">
+                  <div className="border-t border-gray-100 pt-4 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => handleDuplicate(resume._id!, e)}
+                        className="text-gray-500 hover:text-blue-600 font-semibold transition py-1 px-2 rounded-lg hover:bg-gray-50"
+                        title="Duplicate Resume"
+                      >
+                        📋 Copy
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedResumeIdForPortfolio(resume._id!);
+                          setPortfolioModalOpen(true);
+                        }}
+                        className="text-gray-500 hover:text-purple-600 font-semibold transition py-1 px-2 rounded-lg hover:bg-gray-50"
+                        title="Convert to Portfolio"
+                      >
+                        🌐 Portfolio
+                      </button>
+                    </div>
+
                     <button
-                      onClick={() => handleEditResume(resume._id)}
-                      className="flex-1 py-2 border border-gray-100 hover:border-blue-500 hover:text-blue-600 bg-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition shadow-sm cursor-pointer"
+                      onClick={(e) => handleDelete(resume._id!, e)}
+                      className="text-gray-400 hover:text-red-600 font-semibold transition py-1 px-2 rounded-lg hover:bg-red-50"
+                      title="Delete Resume"
                     >
-                      <Edit className="h-3.5 w-3.5" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDuplicateResume(resume._id)}
-                      className="p-2 border border-gray-100 hover:border-gray-300 rounded-lg text-gray-400 hover:text-gray-900 transition shadow-sm cursor-pointer"
-                      title="Duplicate"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteResume(resume._id)}
-                      className="p-2 border border-gray-100 hover:border-red-200 rounded-lg text-gray-400 hover:text-red-600 transition shadow-sm cursor-pointer"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
+                      🗑️
                     </button>
                   </div>
                 </div>
@@ -463,155 +390,110 @@ function DashboardContent() {
             </div>
           )}
         </div>
+      </main>
 
-        {/* Portfolio Site section */}
-        <PortfolioCustomizer resumes={resumes} />
-      </div>
-
-      {/* Upgrade Modal — Multi-Option Payment Gateway & UPI */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white max-w-lg w-full rounded-3xl p-7 border shadow-2xl relative space-y-6 max-h-[90vh] overflow-y-auto font-sans">
+      {/* Upgrade Modal */}
+      {upgradeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl relative border border-gray-100">
             <button
-              onClick={() => setShowUpgradeModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 text-sm font-bold cursor-pointer"
+              onClick={() => setUpgradeModalOpen(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-lg font-bold"
             >
               ✕
             </button>
 
-            <div className="text-center space-y-1">
-              <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <Sparkles className="h-6 w-6" />
+            <div className="text-center space-y-2">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white font-black text-xl shadow-lg shadow-amber-500/30 mb-1">
+                ✦
               </div>
-              <h3 className="text-xl font-black text-gray-950">Upgrade to ResumeAI Pro</h3>
-              <p className="text-xs text-gray-400">
-                Unlock 8 Premium Layouts, Groq AI Copilot & Personal Subdomains
+              <h3 className="text-2xl font-black text-gray-950">Upgrade to ResumeAI Pro</h3>
+              <p className="text-xs text-gray-500">
+                Unlock unlimited AI features, 8+ premium templates, and custom portfolio subdomains.
               </p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2">
-              <div className="flex justify-between items-center text-xs font-semibold text-gray-500 border-b pb-2">
-                <span>ResumeAI Pro Plan</span>
-                <span className="text-sm font-bold text-gray-950">₹499 / year</span>
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-5 border border-blue-100 space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-gray-900">
+                <span>Pro Pass Access</span>
+                <span className="text-blue-600">$9 / month (billed yearly)</span>
               </div>
-              <ul className="text-xs text-gray-600 space-y-1.5 pt-1 font-medium">
-                <li className="flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  Access all 8 Premium Templates (Executive, Tech, Academic, Sleek)
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  Personal Subdomain Hosting (resumeai.app/yourname)
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  Convert Resume to Portfolio Website with 1-click
-                </li>
+              <ul className="text-xs text-gray-600 space-y-2 font-medium">
+                <li>✓ Unlimited Gemini AI Bullet Rewrites</li>
+                <li>✓ High-Resolution PDF & Image Exports</li>
+                <li>✓ Portfolio Website Subdomain</li>
+                <li>✓ ATS Parser Optimization</li>
               </ul>
             </div>
 
-            {/* Payment Options Selection */}
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-gray-700 uppercase tracking-wider text-center">
-                Select Payment Method:
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await handleUpgradeToPro();
-                  }}
-                  className="p-3.5 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl text-xs font-bold transition shadow-md flex flex-col items-center justify-center gap-1 cursor-pointer"
-                >
-                  <CreditCard className="h-5 w-5" />
-                  <span>Cards / Razorpay</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Fast UPI Instant Upgrade
-                    setIsPro(true);
-                    localStorage.setItem("pro_member", "true");
-                    const storedUser = localStorage.getItem("user");
-                    if (storedUser) {
-                      const parsed = JSON.parse(storedUser);
-                      parsed.isPro = true;
-                      localStorage.setItem("user", JSON.stringify(parsed));
-                    }
-                    setShowUpgradeModal(false);
-                    alert("🎉 PhonePe / UPI Payment Verified! Pro Activated Successfully!");
-                  }}
-                  className="p-3.5 bg-gradient-to-br from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white rounded-2xl text-xs font-bold transition shadow-md flex flex-col items-center justify-center gap-1 cursor-pointer"
-                >
-                  <span className="text-base">📲</span>
-                  <span>PhonePe / GPay / QR</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPro(true);
-                    localStorage.setItem("pro_member", "true");
-                    const storedUser = localStorage.getItem("user");
-                    if (storedUser) {
-                      const parsed = JSON.parse(storedUser);
-                      parsed.isPro = true;
-                      localStorage.setItem("user", JSON.stringify(parsed));
-                    }
-                    setShowUpgradeModal(false);
-                    alert("🎉 International Card Payment Verified! Pro Activated!");
-                  }}
-                  className="p-3.5 bg-gradient-to-br from-indigo-600 to-slate-800 hover:from-indigo-700 hover:to-slate-900 text-white rounded-2xl text-xs font-bold transition shadow-md flex flex-col items-center justify-center gap-1 cursor-pointer"
-                >
-                  <span className="text-base">🌐</span>
-                  <span>Stripe Card</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPro(true);
-                    localStorage.setItem("pro_member", "true");
-                    const storedUser = localStorage.getItem("user");
-                    if (storedUser) {
-                      const parsed = JSON.parse(storedUser);
-                      parsed.isPro = true;
-                      localStorage.setItem("user", JSON.stringify(parsed));
-                    }
-                    setShowUpgradeModal(false);
-                    alert("🎉 NetBanking Transfer Verified! Pro Activated!");
-                  }}
-                  className="p-3.5 bg-gradient-to-br from-slate-800 to-gray-900 hover:from-slate-900 hover:to-black text-white rounded-2xl text-xs font-bold transition shadow-md flex flex-col items-center justify-center gap-1 cursor-pointer"
-                >
-                  <span className="text-base">🏦</span>
-                  <span>NetBanking</span>
-                </button>
-              </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => handleUpgradeToPro("yearly")}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition"
+                style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
+              >
+                Pay & Unlock Pro ($9/mo) →
+              </button>
+              <button
+                onClick={() => handleUpgradeToPro("monthly")}
+                className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-50 transition"
+              >
+                Pay Monthly ($15/mo)
+              </button>
             </div>
-
-            <p className="text-center text-[10px] text-gray-400">
-              Instant 1-click activation across all payment options.
-            </p>
           </div>
         </div>
       )}
-    </main>
-  );
-}
 
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-semibold text-gray-500">Loading Dashboard...</p>
+      {/* Convert to Portfolio Modal */}
+      {portfolioModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl relative border border-gray-100">
+            <button
+              onClick={() => setPortfolioModalOpen(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-lg font-bold"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-gray-950">Publish Portfolio Website</h3>
+              <p className="text-xs text-gray-500">
+                Choose a unique subdomain for your public portfolio site.
+              </p>
+            </div>
+
+            <form onSubmit={handlePublishPortfolio} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Subdomain Name
+                </label>
+                <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 text-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                  <input
+                    type="text"
+                    placeholder="john-doe"
+                    value={subdomainInput}
+                    onChange={(e) => setSubdomainInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                    required
+                    className="w-full focus:outline-none text-sm font-medium"
+                  />
+                  <span className="text-xs text-gray-400 font-mono font-bold whitespace-nowrap pl-2">
+                    .resumeai.site
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition"
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)" }}
+              >
+                Publish Portfolio Now →
+              </button>
+            </form>
+          </div>
         </div>
-      </main>
-    }>
-      <DashboardContent />
-    </Suspense>
+      )}
+    </div>
   );
 }

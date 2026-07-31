@@ -1,6 +1,7 @@
 "use client";
 
 import { Resume } from "@/types/resume";
+import { formatUrl } from "@/utils/formatUrl";
 
 interface Props {
   resume: Resume;
@@ -135,12 +136,12 @@ export default function SleekTemplate({ resume }: Props) {
                       <span>{project.title}</span>
                       <div className="flex gap-3 text-[10px] font-medium">
                         {project.github && (
-                          <a href={project.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          <a href={formatUrl(project.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                             Code
                           </a>
                         )}
                         {project.liveDemo && (
-                          <a href={project.liveDemo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          <a href={formatUrl(project.liveDemo)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                             Live
                           </a>
                         )}

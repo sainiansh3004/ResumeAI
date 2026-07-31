@@ -402,6 +402,50 @@ export default function ResumeBuilder() {
         }
       }
 
+      // Embed interactive PDF hyperlink annotations for all project & profile links
+      try {
+        const { formatUrl } = await import("@/utils/formatUrl");
+        const containerRect = el.getBoundingClientRect();
+        const totalPdfHeightMm = (canvas.height * pdfWidth) / canvas.width;
+        const links = el.querySelectorAll<HTMLAnchorElement>("a[href]");
+
+        links.forEach((a) => {
+          const rawHref = a.getAttribute("href") || a.href;
+          if (!rawHref || rawHref === "#" || rawHref.startsWith("javascript:")) return;
+
+          const url = formatUrl(rawHref);
+          if (!url) return;
+
+          const rect = a.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return;
+
+          // X, Y, W, H relative to container in mm
+          const x = ((rect.left - containerRect.left) / containerRect.width) * pdfWidth;
+          const y = ((rect.top - containerRect.top) / containerRect.height) * totalPdfHeightMm;
+          const w = (rect.width / containerRect.width) * pdfWidth;
+          const h = (rect.height / containerRect.height) * totalPdfHeightMm;
+
+          if (fitToOnePage || totalPdfHeightMm <= pdfHeight) {
+            pdf.setPage(1);
+            pdf.link(x, y, w, h, { url });
+          } else {
+            const pageIndex = Math.floor(y / pdfHeight);
+            const pageY = y % pdfHeight;
+            const targetPage = pageIndex + 1;
+            const totalPagesCount = (pdf as any).internal?.getNumberOfPages
+              ? (pdf as any).internal.getNumberOfPages()
+              : 1;
+
+            if (targetPage <= totalPagesCount) {
+              pdf.setPage(targetPage);
+              pdf.link(x, pageY, w, h, { url });
+            }
+          }
+        });
+      } catch (linkErr) {
+        console.error("Error embedding links into PDF:", linkErr);
+      }
+
       pdf.save(`${resume.title || "Resume"}.pdf`);
     } catch (err) {
       console.error("PDF generation failed, falling back to window.print():", err);

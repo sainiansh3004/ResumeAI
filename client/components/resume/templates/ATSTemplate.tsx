@@ -1,6 +1,7 @@
 "use client";
 
 import { Resume } from "@/types/resume";
+import { formatUrl } from "@/utils/formatUrl";
 
 interface Props {
   resume: Resume;
@@ -190,12 +191,12 @@ export default function ATSTemplate({ resume }: Props) {
                       <div key={index} className="break-inside-avoid project-item">
                         <div className="flex items-start justify-between">
                           <h3 className="font-bold">{project.title || "Project Title"}</h3>
-                          <div className="text-[12px] font-semibold space-x-2">
+                           <div className="text-[12px] font-semibold space-x-2">
                             {project.github && (
                               <a
-                                href={project.github.startsWith("http") ? project.github : `https://${project.github}`}
+                                href={formatUrl(project.github)}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                                 className="hover:underline text-blue-900"
                               >
                                 GitHub
@@ -204,9 +205,9 @@ export default function ATSTemplate({ resume }: Props) {
                             {project.github && project.liveDemo && <span>•</span>}
                             {project.liveDemo && (
                               <a
-                                href={project.liveDemo.startsWith("http") ? project.liveDemo : `https://${project.liveDemo}`}
+                                href={formatUrl(project.liveDemo)}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                                 className="hover:underline text-blue-900"
                               >
                                 Demo

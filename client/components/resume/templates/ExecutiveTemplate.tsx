@@ -1,6 +1,7 @@
 "use client";
 
 import { Resume } from "@/types/resume";
+import { formatUrl } from "@/utils/formatUrl";
 
 interface Props {
   resume: Resume;
@@ -143,12 +144,12 @@ export default function ExecutiveTemplate({ resume }: Props) {
                       <h3 className="font-semibold text-gray-900 text-sm">{project.title}</h3>
                       <div className="flex gap-3 text-xs">
                         {project.github && (
-                          <a href={project.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-[11px]">
+                          <a href={formatUrl(project.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-[11px]">
                             GitHub
                           </a>
                         )}
                         {project.liveDemo && (
-                          <a href={project.liveDemo} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-[11px]">
+                          <a href={formatUrl(project.liveDemo)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-[11px]">
                             Demo
                           </a>
                         )}

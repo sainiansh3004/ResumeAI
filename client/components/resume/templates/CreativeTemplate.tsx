@@ -1,6 +1,7 @@
 "use client";
 
 import { Resume } from "@/types/resume";
+import { formatUrl } from "@/utils/formatUrl";
 
 interface Props {
   resume: Resume;
@@ -251,7 +252,7 @@ export default function CreativeTemplate({ resume }: Props) {
                         <div className="mt-3 flex gap-5 text-sm">
                           {project.github && (
                             <a
-                              href={project.github}
+                              href={formatUrl(project.github)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className={`${theme.secondary} underline`}
@@ -261,7 +262,7 @@ export default function CreativeTemplate({ resume }: Props) {
                           )}
                           {project.liveDemo && (
                             <a
-                              href={project.liveDemo}
+                              href={formatUrl(project.liveDemo)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className={`${theme.secondary} underline`}

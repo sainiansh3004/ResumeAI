@@ -1,6 +1,7 @@
 "use client";
 
 import { Resume } from "@/types/resume";
+import { formatUrl } from "@/utils/formatUrl";
 
 interface Props {
   resume: Resume;
@@ -41,10 +42,6 @@ const themeMap = {
 
 export default function ModernTemplate({ resume }: Props) {
   const theme = themeMap[resume.themeColor || "blue"];
-  console.log("Modern Resume:", resume);
-  console.log("Modern PersonalInfo:", resume.personalInfo);
-  console.log("PHOTO:", resume.personalInfo.photo);
-  console.log("FULL RESUME:", resume);
 
   return (
     <div className="w-full bg-white">
@@ -85,15 +82,21 @@ export default function ModernTemplate({ resume }: Props) {
             className={`mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm ${theme.secondary}`}
           >
             {resume.personalInfo.linkedin && (
-              <span>{resume.personalInfo.linkedin}</span>
+              <a href={formatUrl(resume.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="underline">
+                LinkedIn
+              </a>
             )}
 
             {resume.personalInfo.github && (
-              <span>{resume.personalInfo.github}</span>
+              <a href={formatUrl(resume.personalInfo.github)} target="_blank" rel="noopener noreferrer" className="underline">
+                GitHub
+              </a>
             )}
 
             {resume.personalInfo.portfolio && (
-              <span>{resume.personalInfo.portfolio}</span>
+              <a href={formatUrl(resume.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="underline">
+                Portfolio
+              </a>
             )}
           </div>
         </div>
@@ -241,7 +244,7 @@ export default function ModernTemplate({ resume }: Props) {
                       <div className="mt-2 flex gap-5 text-sm">
                         {project.github && (
                           <a
-                            href={project.github}
+                            href={formatUrl(project.github)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`${theme.secondary} underline`}
@@ -251,7 +254,7 @@ export default function ModernTemplate({ resume }: Props) {
                         )}
                         {project.liveDemo && (
                           <a
-                            href={project.liveDemo}
+                            href={formatUrl(project.liveDemo)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`${theme.secondary} underline`}

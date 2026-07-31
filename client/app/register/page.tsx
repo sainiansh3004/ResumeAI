@@ -2,20 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { registerUser, verifyOtp, resendOtp } from "@/services/authService";
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const router = useRouter();
   const [step, setStep] = useState<"register" | "otp">("register");
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [otp, setOtp] = useState("");
-  const [targetEmail, setTargetEmail] = useState("");
-
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
-
   const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,30 +22,31 @@ export default function RegisterPage() {
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.email || !formData.password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
-      setSuccessMsg("");
+      setInfoMsg("");
+      const response = await registerUser(formData);
 
-      const res = await registerUser(formData);
-
-      if (res.requireOtp) {
-        setTargetEmail(res.email || formData.email);
+      if (response.requireOtp || response.success) {
         setStep("otp");
-        setSuccessMsg(res.message || "An OTP code has been sent to your email address!");
-      } else if (res.token) {
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("user", JSON.stringify(res.user));
-        setSuccessMsg("Account created successfully! Redirecting...");
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 500);
+        setInfoMsg(`A 6-digit verification code has been sent to ${formData.email}. Please check your Inbox and Spam folder.`);
+      } else if (response.token) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        router.push("/dashboard");
       }
     } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-        "Registration failed. Please check your details and try again."
-      );
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -56,31 +55,25 @@ export default function RegisterPage() {
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp || otp.trim().length !== 6) {
-      setError("Please enter the complete 6-digit OTP code.");
+      setError("Please enter the 6-digit OTP.");
       return;
     }
 
     try {
-      setVerifying(true);
+      setLoading(true);
       setError("");
-      setSuccessMsg("");
-
-      const response = await verifyOtp({ email: targetEmail, otp: otp.trim() });
+      const response = await verifyOtp({ email: formData.email, otp: otp.trim() });
       if (response.token) {
         localStorage.setItem("token", response.token);
         localStorage.setItem("user", JSON.stringify(response.user));
-        if (response.user?.isPro) {
-          localStorage.setItem("pro_member", "true");
-        }
-        setSuccessMsg("Account verified! Redirecting to dashboard...");
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 500);
+        router.push("/dashboard");
+      } else {
+        setError(response.message || "OTP verification failed.");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid or expired OTP code.");
+      setError(err.response?.data?.message || "Invalid or expired OTP code. Please check your email.");
     } finally {
-      setVerifying(false);
+      setLoading(false);
     }
   };
 
@@ -88,11 +81,11 @@ export default function RegisterPage() {
     try {
       setResending(true);
       setError("");
-      setSuccessMsg("");
-      const response = await resendOtp({ email: targetEmail });
-      setSuccessMsg(response.message || "A fresh OTP code has been sent to your email.");
+      setInfoMsg("");
+      await resendOtp({ email: formData.email });
+      setInfoMsg(`A new 6-digit OTP code has been sent to ${formData.email}. Check your Inbox / Spam folder.`);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to resend OTP. Please try again.");
+      setError(err.response?.data?.message || "Failed to resend OTP.");
     } finally {
       setResending(false);
     }
@@ -100,25 +93,25 @@ export default function RegisterPage() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center p-6 font-sans"
+      className="min-h-screen flex items-center justify-center p-6"
       style={{
         background:
-          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.12) 0%, transparent 70%), #f9fafb",
+          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.10) 0%, transparent 70%), #f9fafb",
       }}
     >
       <div className="w-full max-w-md space-y-8">
-        {/* Brand */}
+        {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white font-black text-xl shadow-lg shadow-blue-500/30 mb-2">
             R
           </div>
           <h1 className="text-2xl font-black text-gray-950 tracking-tight">
-            {step === "register" ? "Create your account" : "Verify Email OTP"}
+            {step === "register" ? "Create your free account" : "Verify your Email"}
           </h1>
           <p className="text-sm text-gray-500">
             {step === "register"
-              ? "Start building professional resumes for free"
-              : `We sent a 6-digit OTP code to ${targetEmail}`}
+              ? "Join 15,000+ job seekers crafting ATS resumes"
+              : `We sent a 6-digit code to ${formData.email}`}
           </p>
         </div>
 
@@ -130,15 +123,14 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {successMsg && (
-            <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3 font-medium">
-              {successMsg}
+          {infoMsg && (
+            <div className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 font-medium">
+              {infoMsg}
             </div>
           )}
 
           {step === "register" ? (
-            /* STEP 1: REGISTER FORM */
-            <form onSubmit={handleRegisterSubmit} className="space-y-5">
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Full Name
@@ -176,7 +168,7 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   name="password"
-                  placeholder="Create a password (min. 6 chars)"
+                  placeholder="At least 6 characters"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -188,7 +180,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
+                className="w-full py-3.5 mt-2 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
                 }}
@@ -197,11 +189,10 @@ export default function RegisterPage() {
               </button>
             </form>
           ) : (
-            /* STEP 2: OTP VERIFICATION FORM */
-            <form onSubmit={handleOtpSubmit} className="space-y-6">
-              <div className="space-y-2">
+            <form onSubmit={handleOtpSubmit} className="space-y-5">
+              <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  6-Digit Verification Code
+                  6-Digit OTP Code
                 </label>
                 <input
                   type="text"
@@ -209,45 +200,40 @@ export default function RegisterPage() {
                   placeholder="123456"
                   value={otp}
                   onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, ""));
+                    setOtp(e.target.value.replace(/[^0-9]/g, ""));
                     setError("");
                   }}
-                  autoFocus
                   required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-center text-2xl font-black tracking-[0.5em] text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={verifying || otp.length !== 6}
-                className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
                 }}
               >
-                {verifying ? "Verifying Code..." : "Verify OTP & Complete Signup →"}
+                {loading ? "Verifying..." : "Verify & Continue →"}
               </button>
 
-              <div className="flex items-center justify-between text-xs pt-2">
+              <div className="flex items-center justify-between text-xs pt-1">
+                <button
+                  type="button"
+                  onClick={() => setStep("register")}
+                  className="font-semibold text-gray-500 hover:text-gray-700"
+                >
+                  ← Back
+                </button>
                 <button
                   type="button"
                   onClick={handleResendOtp}
                   disabled={resending}
-                  className="text-blue-600 font-bold hover:underline disabled:opacity-50 cursor-pointer"
+                  className="font-bold text-blue-600 hover:underline disabled:opacity-50"
                 >
-                  {resending ? "Resending..." : "Resend OTP Code"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("register");
-                    setOtp("");
-                    setError("");
-                  }}
-                  className="text-gray-500 font-semibold hover:text-gray-700 cursor-pointer"
-                >
-                  ← Back to Form
+                  {resending ? "Sending..." : "Resend OTP"}
                 </button>
               </div>
             </form>
@@ -260,10 +246,6 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-
-        <p className="text-center text-[10px] text-gray-400">
-          By signing up, you agree to our Terms of Service and Privacy Policy.
-        </p>
       </div>
     </main>
   );

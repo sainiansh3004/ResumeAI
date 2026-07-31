@@ -253,7 +253,7 @@ const resendOtp = async (req, res) => {
   }
 };
 
-// ================= LOGIN =================
+// ================= LOGIN USER WITH REAL-TIME OTP =================
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -283,54 +283,30 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // If user is not verified, require OTP verification
-    if (user.isVerified === false) {
-      const otp = generateOTP();
-      user.otp = otp;
-      user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-      await user.save();
+    // Always generate fresh OTP for sign-in verification
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
 
-      sendEmail({
-        to: email,
-        subject: "Here's Your ResumeAI Verification Code.",
-        text: `Hi ${user.name}, your 6-digit OTP code for signing in to ResumeAI is: ${otp}. It will expire in 10 minutes.`,
-        html: buildEmailTemplate({
-          name: user.name,
-          otp,
-          message: "We received a sign-in attempt for your ResumeAI account. Please enter the 6-digit verification code below to verify your login:",
-        }),
-      }).catch((e) => console.error("Login OTP email error:", e));
-
-      return res.status(400).json({
-        success: false,
-        requireOtp: true,
-        email: user.email,
-        otp: user.otp,
-        message: "Your email is not verified yet. A 6-digit verification code has been sent to your email address.",
-      });
-    }
-
-    // Issue JWT token for verified user login
-    const jwtSecret = process.env.JWT_SECRET || "resumeai_jwt_secret_key_2026";
-    const token = jwt.sign(
-      { id: user._id },
-      jwtSecret,
-      { expiresIn: "7d" }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful!",
-      token,
-      user: {
-        _id: user._id,
-        id: user._id,
+    // Send real-time OTP Email
+    sendEmail({
+      to: email,
+      subject: "Here's Your ResumeAI Verification Code.",
+      text: `Hi ${user.name}, your 6-digit verification code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
+      html: buildEmailTemplate({
         name: user.name,
-        email: user.email,
-        isVerified: true,
-        isPro: user.isPro || false,
-        plan: user.isPro ? "pro" : "free",
-      },
+        otp,
+        message: "We received a sign-in attempt for your ResumeAI account. Please enter the 6-digit verification code below to verify your login:",
+      }),
+    }).catch((e) => console.error("Login OTP email error:", e));
+
+    return res.status(200).json({
+      success: true,
+      requireOtp: true,
+      email: user.email,
+      otp: user.otp,
+      message: `Password verified! A 6-digit verification code has been sent to ${email}.`,
     });
   } catch (error) {
     console.error("Login Error:", error);
@@ -338,6 +314,61 @@ const loginUser = async (req, res) => {
       success: false,
       message: "Server Error",
     });
+  }
+};
+
+// ================= SOCIAL LOGIN (GOOGLE & LINKEDIN WITH REAL-TIME OTP) =================
+const socialLogin = async (req, res) => {
+  try {
+    const { provider, name, email } = req.body;
+    const prov = (provider || "google").toLowerCase();
+    const targetEmail = (email || `${prov}_user_${Date.now()}@resumeai.com`).toLowerCase().trim();
+    const targetName = name || (prov === "linkedin" ? "LinkedIn User" : "Google User");
+
+    let user = await User.findOne({ email: targetEmail });
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    if (!user) {
+      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
+      user = await User.create({
+        name: targetName,
+        email: targetEmail,
+        password: randomPassword,
+        isVerified: false,
+        otp,
+        otpExpires,
+        isPro: true,
+      });
+    } else {
+      user.otp = otp;
+      user.otpExpires = otpExpires;
+      await user.save();
+    }
+
+    // Send real-time OTP Email
+    sendEmail({
+      to: targetEmail,
+      subject: "Here's Your ResumeAI Verification Code.",
+      text: `Hi ${targetName}, your 6-digit verification code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
+      html: buildEmailTemplate({
+        name: targetName,
+        otp,
+        message: `Thank you for signing in with ${prov === "linkedin" ? "LinkedIn" : "Google"}! Please enter the 6-digit verification code below to complete authentication:`,
+      }),
+    }).catch((e) => console.error("Social login OTP email error:", e));
+
+    return res.status(200).json({
+      success: true,
+      requireOtp: true,
+      email: user.email,
+      otp: user.otp,
+      message: `A 6-digit verification code has been sent to ${targetEmail}.`,
+    });
+  } catch (error) {
+    console.error("Social Login Error:", error);
+    res.status(500).json({ success: false, message: "Social login failed." });
   }
 };
 

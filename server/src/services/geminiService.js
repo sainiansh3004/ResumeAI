@@ -236,7 +236,8 @@ Return a valid JSON object matching this EXACT structure (field names MUST match
 }
 
 Requirements:
-- Extract as much information as possible from the provided text.
+- Extract 100% of all candidate information, experience bullet points, project descriptions, skills, certifications, and achievements completely without summarizing, truncating, or omitting any details.
+- Preserve EVERY bullet point, responsibility, and achievement from work experience and projects in full text inside "description".
 - Set title to the person's full name followed by 'Resume' (e.g. "John Doe Resume") if full name is found, otherwise "Uploaded Resume".
 - achievements MUST be an array of objects with "title" and "description" keys. Never return plain strings.
 - languages MUST be an array of objects with "name" and "proficiency" keys. Never return plain strings.
@@ -245,12 +246,12 @@ Requirements:
 - education MUST use "startYear", "endYear", "cgpa" (not startDate, endDate, gpa).
 - certifications MUST use "organization" and "issueDate" (not "issuer" or "date").
 - experience MUST use "currentlyWorking" (not "current").
-- skills MUST be a flat array of strings.
+- skills MUST be a flat array of strings containing every technical tool, framework, library, and skill listed.
 - If a section or field is not present in the text, use an empty string "" or an empty array [].
-- Return ONLY valid raw JSON without extra conversational text or markdown code blocks. Keep descriptions clear and concise.
+- Return ONLY valid raw JSON without extra conversational text.
 `;
 
-  return callGroq(prompt, { temperature: 0.1, max_tokens: 8192 });
+  return callGroq(prompt, { temperature: 0.1, max_tokens: 8192, response_format: { type: "json_object" } });
 };
 
 module.exports = {

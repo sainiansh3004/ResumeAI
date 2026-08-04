@@ -190,6 +190,15 @@ const sanitizeResumeData = (data) => {
     safe.interests = [];
   }
 
+  // Helper to format descriptions or bullet arrays safely
+  const formatDesc = (val) => {
+    if (!val) return "";
+    if (Array.isArray(val)) {
+      return val.map((b) => (typeof b === "string" ? b : JSON.stringify(b))).join("\n• ");
+    }
+    return String(val);
+  };
+
   // projects: must use title, technologies (array), github, liveDemo
   if (Array.isArray(safe.projects)) {
     safe.projects = safe.projects.map((item) => {
@@ -198,7 +207,7 @@ const sanitizeResumeData = (data) => {
       if (typeof techs === "string") techs = techs.split(",").map((t) => t.trim()).filter(Boolean);
       return {
         title: item.title || item.name || "",
-        description: item.description || "",
+        description: formatDesc(item.description || item.details || item.bullets || item.highlights),
         technologies: Array.isArray(techs) ? techs : [],
         github: item.github || item.link || "",
         liveDemo: item.liveDemo || "",
@@ -232,7 +241,7 @@ const sanitizeResumeData = (data) => {
       startDate: item.startDate || "",
       endDate: item.endDate || "",
       currentlyWorking: item.currentlyWorking || item.current || false,
-      description: item.description || "",
+      description: formatDesc(item.description || item.details || item.bullets || item.responsibilities || item.highlights),
     }));
   } else {
     safe.experience = [];

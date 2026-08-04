@@ -279,16 +279,90 @@ const parseResumePdf = async (req, res) => {
     let extractedText = "";
 
     if (req.file) {
-      const parser = new PDFParse({ data: req.file.buffer });
-      await parser.load();
-      const parsedData = await parser.getText();
-      if (typeof parsedData === "string") {
-        extractedText = parsedData;
-      } else if (parsedData && typeof parsedData.text === "string") {
-        extractedText = parsedData.text;
-      } else if (parsedData && Array.isArray(parsedData.pages)) {
-        extractedText = parsedData.pages.map((p) => p.text || "").join("\n");
+      console.log("📄 PDF file received, size:", req.file.size, "bytes, mimetype:", req.file.mimetype);
+
+      // Step 1: Try pdfjs-dist text extraction (works for text-based PDFs)
+      const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.mjs");
+      try {
+        const uint8Array = new Uint8Array(req.file.buffer);
+        const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+        const pdfDoc = await loadingTask.promise;
+        const numPages = pdfDoc.numPages;
+        console.log("📄 PDF loaded successfully, pages:", numPages);
+
+        const pageTexts = [];
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdfDoc.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item) => item.str)
+            .join(" ");
+          pageTexts.push(pageText);
+        }
+        extractedText = pageTexts.join("\n").trim();
+      } catch (pdfjsErr) {
+        console.warn("⚠️ pdfjs-dist extraction failed:", pdfjsErr.message);
       }
+
+      console.log("📄 Text extraction result:", extractedText.length, "chars");
+
+      // Step 2: If text is empty/tiny, this is a scanned/image PDF — use OCR
+      if (!extractedText || extractedText.trim().length < 50) {
+        console.log("📄 Text layer is empty — running Tesseract OCR on PDF images...");
+        try {
+          const Tesseract = require("tesseract.js");
+          const sharp = require("sharp");
+
+          const uint8Array = new Uint8Array(req.file.buffer);
+          const pdfDoc = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+          const ocrTexts = [];
+
+          for (let i = 1; i <= pdfDoc.numPages; i++) {
+            const page = await pdfDoc.getPage(i);
+            const ops = await page.getOperatorList();
+
+            for (let j = 0; j < ops.fnArray.length; j++) {
+              // Operator 85 = paintImageXObject in pdfjs-dist v5
+              if (ops.fnArray[j] === 85) {
+                try {
+                  const imgName = ops.argsArray[j][0];
+                  // Use callback-based objs.get for async image retrieval
+                  const imgData = await new Promise((resolve, reject) => {
+                    page.objs.get(imgName, (data) => resolve(data));
+                    setTimeout(() => reject(new Error("Image fetch timeout")), 10000);
+                  });
+
+                  if (imgData && imgData.data) {
+                    const { width, height, data } = imgData;
+                    const channels = Math.round(data.length / (width * height));
+                    const pngBuf = await sharp(Buffer.from(data), {
+                      raw: { width, height, channels: channels >= 4 ? 4 : 3 },
+                    }).png().toBuffer();
+
+                    const { data: { text: ocrText } } = await Tesseract.recognize(pngBuf, "eng");
+                    if (ocrText && ocrText.trim()) {
+                      ocrTexts.push(ocrText.trim());
+                      console.log("📄 OCR page", i, "extracted:", ocrText.trim().length, "chars");
+                    }
+                  }
+                } catch (imgErr) {
+                  console.warn("⚠️ OCR image error on page", i, ":", imgErr.message);
+                }
+              }
+            }
+          }
+
+          if (ocrTexts.length > 0) {
+            extractedText = ocrTexts.join("\n");
+            console.log("📄 OCR total extracted:", extractedText.length, "chars");
+          }
+        } catch (ocrErr) {
+          console.error("⚠️ OCR fallback failed:", ocrErr.message);
+        }
+      }
+
+      console.log("📄 Final extracted text length:", extractedText.length, "chars");
+      console.log("📄 Final text preview:", extractedText.substring(0, 500));
     } else if (req.body.text) {
       extractedText = req.body.text;
     }
@@ -296,7 +370,7 @@ const parseResumePdf = async (req, res) => {
     if (!extractedText || !extractedText.trim()) {
       return res.status(400).json({
         success: false,
-        message: "No readable text found in PDF resume file.",
+        message: "No readable text found in PDF. If your resume is a scanned image, please use a text-based PDF instead.",
       });
     }
 

@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [portfolio, setPortfolio] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [importingPdf, setImportingPdf] = useState(false);
   const dashboardFileInputRef = useRef<HTMLInputElement>(null);
 

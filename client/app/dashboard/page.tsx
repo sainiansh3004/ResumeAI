@@ -236,7 +236,14 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+            <button
+              onClick={handleCreateResume}
+              disabled={creating}
+              className="bg-blue-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-blue-700 transition flex items-center gap-1.5 shadow-sm"
+            >
+              <span>+</span> Add Resume
+            </button>
+
             {user?.isPro ? (
               <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow-sm">
                 ✦ PRO MEMBER
@@ -309,6 +316,45 @@ export default function DashboardPage() {
               <span>+</span>
               {creating ? "Creating..." : "Create Blank Resume"}
             </button>
+          </div>
+        </div>
+
+        {/* Quick Add Resume Options Banner */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div
+            onClick={() => dashboardFileInputRef.current?.click()}
+            className="group bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-6 rounded-3xl border border-blue-800/40 shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center justify-between gap-4"
+          >
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-blue-500/30 text-blue-200 px-3 py-1 rounded-full border border-blue-400/30">
+                ⚡ Recommended
+              </span>
+              <h3 className="text-base font-bold group-hover:text-blue-300 transition">📥 Upload PDF Resume</h3>
+              <p className="text-xs text-blue-200/80">
+                AI parses all your experiences, skills, education & projects automatically.
+              </p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+              📄
+            </div>
+          </div>
+
+          <div
+            onClick={handleCreateResume}
+            className="group bg-white text-slate-900 p-6 rounded-3xl border border-gray-200/90 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-4"
+          >
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-purple-100 text-purple-700 px-3 py-1 rounded-full border border-purple-200">
+                🎨 Custom Builder
+              </span>
+              <h3 className="text-base font-bold group-hover:text-purple-600 transition">✏️ Build From Scratch</h3>
+              <p className="text-xs text-gray-500">
+                Start with a blank canvas and use AI suggestions step-by-step.
+              </p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+              ✨
+            </div>
           </div>
         </div>
 

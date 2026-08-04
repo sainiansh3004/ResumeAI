@@ -280,8 +280,15 @@ const parseResumePdf = async (req, res) => {
 
     if (req.file) {
       const parser = new PDFParse({ data: req.file.buffer });
+      await parser.load();
       const parsedData = await parser.getText();
-      extractedText = parsedData.text || "";
+      if (typeof parsedData === "string") {
+        extractedText = parsedData;
+      } else if (parsedData && typeof parsedData.text === "string") {
+        extractedText = parsedData.text;
+      } else if (parsedData && Array.isArray(parsedData.pages)) {
+        extractedText = parsedData.pages.map((p) => p.text || "").join("\n");
+      }
     } else if (req.body.text) {
       extractedText = req.body.text;
     }

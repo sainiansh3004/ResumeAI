@@ -11,10 +11,11 @@ const groq = new OpenAI({
 });
 
 const MODELS = [
-  "llama-3.3-70b-versatile",
   "llama-3.1-8b-instant",
+  "llama3-70b-8192",
+  "llama3-8b-8192",
   "mixtral-8x7b-32768",
-  "gemma2-9b-it",
+  "llama-3.3-70b-versatile",
 ];
 
 // ==========================
@@ -177,101 +178,37 @@ Requirements:
 // Parse Resume from Text (PDF/Text)
 // ==========================
 const parseResumeFromText = async (resumeText) => {
+  const cleanedText = (resumeText || "")
+    .replace(/\n\s*\n+/g, "\n")
+    .trim()
+    .substring(0, 4000);
+
   const prompt = `
-You are an expert AI ATS Resume Parser. Extract and structure all relevant candidate details from the following resume text into a strict JSON object.
-
-Resume Text:
-${resumeText}
-
-Return a valid JSON object matching this EXACT structure (field names MUST match exactly):
+Extract and structure candidate details into JSON matching this structure:
 {
   "title": "Resume",
-  "personalInfo": {
-    "fullName": "",
-    "headline": "",
-    "email": "",
-    "phone": "",
-    "address": "",
-    "linkedin": "",
-    "github": "",
-    "portfolio": "",
-    "summary": ""
-  },
-  "education": [
-    {
-      "college": "",
-      "degree": "",
-      "fieldOfStudy": "",
-      "startYear": "",
-      "endYear": "",
-      "cgpa": ""
-    }
-  ],
-  "experience": [
-    {
-      "company": "",
-      "position": "",
-      "location": "",
-      "employmentType": "",
-      "startDate": "",
-      "endDate": "",
-      "currentlyWorking": false,
-      "description": ""
-    }
-  ],
-  "skills": ["skill1", "skill2"],
-  "projects": [
-    {
-      "title": "",
-      "description": "",
-      "technologies": ["tech1", "tech2"],
-      "github": "",
-      "liveDemo": ""
-    }
-  ],
-  "certifications": [
-    {
-      "name": "",
-      "organization": "",
-      "issueDate": ""
-    }
-  ],
-  "achievements": [
-    {
-      "title": "",
-      "description": ""
-    }
-  ],
-  "languages": [
-    {
-      "name": "",
-      "proficiency": ""
-    }
-  ],
-  "interests": [
-    {
-      "name": ""
-    }
-  ]
+  "personalInfo": { "fullName": "", "headline": "", "email": "", "phone": "", "address": "", "linkedin": "", "github": "", "portfolio": "", "summary": "" },
+  "education": [{ "college": "", "degree": "", "fieldOfStudy": "", "startYear": "", "endYear": "", "cgpa": "" }],
+  "experience": [{ "company": "", "position": "", "location": "", "employmentType": "", "startDate": "", "endDate": "", "currentlyWorking": false, "description": "" }],
+  "skills": [],
+  "projects": [{ "title": "", "description": "", "technologies": [], "github": "", "liveDemo": "" }],
+  "certifications": [{ "name": "", "organization": "", "issueDate": "" }],
+  "achievements": [{ "title": "", "description": "" }],
+  "languages": [{ "name": "", "proficiency": "" }],
+  "interests": [{ "name": "" }]
 }
 
-Requirements:
-- Extract 100% of all candidate information, experience bullet points, project descriptions, skills, certifications, and achievements completely without summarizing, truncating, or omitting any details.
-- Preserve EVERY bullet point, responsibility, and achievement from work experience and projects in full text inside "description".
-- Set title to the person's full name followed by 'Resume' (e.g. "John Doe Resume") if full name is found, otherwise "Uploaded Resume".
-- achievements MUST be an array of objects with "title" and "description" keys. Never return plain strings.
-- languages MUST be an array of objects with "name" and "proficiency" keys. Never return plain strings.
-- interests MUST be an array of objects with a "name" key. Never return plain strings.
-- projects MUST use "title" (not "name"), and "technologies" must be an array of strings (not a single string).
-- education MUST use "startYear", "endYear", "cgpa" (not startDate, endDate, gpa).
-- certifications MUST use "organization" and "issueDate" (not "issuer" or "date").
-- experience MUST use "currentlyWorking" (not "current").
-- skills MUST be a flat array of strings containing every technical tool, framework, library, and skill listed.
-- If a section or field is not present in the text, use an empty string "" or an empty array [].
-- Return ONLY valid raw JSON without extra conversational text.
+Resume Text:
+${cleanedText}
+
+Rules:
+- Extract all experience, projects, skills, education, certifications, and achievements.
+- Preserve bullet points and descriptions in full text inside "description".
+- achievements/languages/interests/projects/education MUST use array of objects with keys specified above.
+- Return ONLY valid raw JSON without markdown formatting.
 `;
 
-  return callGroq(prompt, { temperature: 0.1, max_tokens: 8192, response_format: { type: "json_object" } });
+  return callGroq(prompt, { temperature: 0.1, max_tokens: 3000, response_format: { type: "json_object" } });
 };
 
 module.exports = {

@@ -5,10 +5,34 @@ const Resume = require("../models/Resume");
 // ==========================
 const createResume = async (req, res) => {
   try {
-    const resume = await Resume.create({
-  user: req.user.id,
-  title: req.body.title || "Untitled Resume",
-});
+    let payload = {};
+
+    if (req.body && typeof req.body === "object") {
+      if (typeof req.body.title === "string" && !req.body.personalInfo) {
+        // Simple title payload: { title: "Untitled Resume" }
+        payload = {
+          user: req.user.id,
+          title: req.body.title || "Untitled Resume",
+        };
+      } else {
+        // Full resume object payload (e.g. imported PDF resume)
+        payload = { ...req.body, user: req.user.id };
+        delete payload._id;
+        delete payload.createdAt;
+        delete payload.updatedAt;
+        delete payload.__v;
+        if (typeof payload.title !== "string") {
+          payload.title = "Uploaded Resume";
+        }
+      }
+    } else {
+      payload = {
+        user: req.user.id,
+        title: "Untitled Resume",
+      };
+    }
+
+    const resume = await Resume.create(payload);
 
     res.status(201).json({
       success: true,
@@ -16,7 +40,7 @@ const createResume = async (req, res) => {
       resume,
     });
   } catch (error) {
-    console.error(error);
+    console.error("CREATE RESUME ERROR:", error);
 
     res.status(500).json({
       success: false,
@@ -84,6 +108,15 @@ const getResumeById = async (req, res) => {
       success: true,
       resume,
     });
+  } catch (error) {
+    console.error("GET RESUME ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 // ==========================
 // Get Public Resume By ID (No auth required)
 // ==========================

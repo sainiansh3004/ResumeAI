@@ -16,11 +16,12 @@ export const getMyResumes = async () => {
 };
 
 export const createResume = async (
-  title: string = "Untitled Resume"
+  payload: any = "Untitled Resume"
 ) => {
+  const body = typeof payload === "string" ? { title: payload } : payload;
   const res = await axios.post(
     API_URL,
-    { title },
+    body,
     {
       headers: {
         Authorization: `Bearer ${getToken()}`,

@@ -10,21 +10,41 @@ const groq = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-const MODEL = "llama-3.3-70b-versatile";
+const MODELS = [
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+  "mixtral-8x7b-32768",
+  "gemma2-9b-it",
+];
 
 // ==========================
-// Shared Groq API caller
+// Shared Groq API caller with Auto-Fallback
 // ==========================
 const callGroq = async (prompt, options = {}) => {
-  const response = await groq.chat.completions.create({
-    model: MODEL,
-    messages: [{ role: "user", content: prompt }],
-    temperature: options.temperature ?? 0.5,
-    max_tokens: options.max_tokens ?? 3072,
-    ...(options.response_format ? { response_format: options.response_format } : {}),
-  });
+  let lastError = null;
 
-  return response.choices[0]?.message?.content ?? "";
+  for (const modelName of MODELS) {
+    try {
+      const response = await groq.chat.completions.create({
+        model: modelName,
+        messages: [{ role: "user", content: prompt }],
+        temperature: options.temperature ?? 0.5,
+        max_tokens: options.max_tokens ?? 3072,
+        ...(options.response_format ? { response_format: options.response_format } : {}),
+      });
+
+      const content = response.choices[0]?.message?.content ?? "";
+      if (content && content.trim()) {
+        console.log(`✅ Successfully generated response using AI model: ${modelName}`);
+        return content;
+      }
+    } catch (err) {
+      console.warn(`⚠️ Model ${modelName} rate limited or failed (${err.message}). Trying fallback model...`);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("All Groq AI models failed to respond.");
 };
 
 // ==========================

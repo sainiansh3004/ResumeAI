@@ -49,9 +49,7 @@ export const parsePdfResume = async (file: File) => {
   formData.append("file", file);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: Record<string, string> = {
-    "Content-Type": "multipart/form-data",
-  };
+  const headers: Record<string, string> = {};
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }

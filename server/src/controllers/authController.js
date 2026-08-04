@@ -317,60 +317,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// ================= SOCIAL LOGIN (GOOGLE & LINKEDIN WITH REAL-TIME OTP) =================
-const socialLogin = async (req, res) => {
-  try {
-    const { provider, name, email } = req.body;
-    const prov = (provider || "google").toLowerCase();
-    const targetEmail = (email || `${prov}_user_${Date.now()}@resumeai.com`).toLowerCase().trim();
-    const targetName = name || (prov === "linkedin" ? "LinkedIn User" : "Google User");
-
-    let user = await User.findOne({ email: targetEmail });
-
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-    if (!user) {
-      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
-      user = await User.create({
-        name: targetName,
-        email: targetEmail,
-        password: randomPassword,
-        isVerified: false,
-        otp,
-        otpExpires,
-        isPro: true,
-      });
-    } else {
-      user.otp = otp;
-      user.otpExpires = otpExpires;
-      await user.save();
-    }
-
-    // Send real-time OTP Email
-    sendEmail({
-      to: targetEmail,
-      subject: "Here's Your ResumeAI Verification Code.",
-      text: `Hi ${targetName}, your 6-digit verification code for ResumeAI is: ${otp}. It will expire in 10 minutes.`,
-      html: buildEmailTemplate({
-        name: targetName,
-        otp,
-        message: `Thank you for signing in with ${prov === "linkedin" ? "LinkedIn" : "Google"}! Please enter the 6-digit verification code below to complete authentication:`,
-      }),
-    }).catch((e) => console.error("Social login OTP email error:", e));
-
-    return res.status(200).json({
-      success: true,
-      requireOtp: true,
-      email: user.email,
-      otp: user.otp,
-      message: `A 6-digit verification code has been sent to ${targetEmail}.`,
-    });
-  } catch (error) {
-    console.error("Social Login Error:", error);
-    res.status(500).json({ success: false, message: "Social login failed." });
-  }
-};
 
 // ================= FORGOT PASSWORD =================
 const forgotPassword = async (req, res) => {

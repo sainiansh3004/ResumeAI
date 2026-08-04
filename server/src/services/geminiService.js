@@ -15,12 +15,13 @@ const MODEL = "llama-3.3-70b-versatile";
 // ==========================
 // Shared Groq API caller
 // ==========================
-const callGroq = async (prompt) => {
+const callGroq = async (prompt, options = {}) => {
   const response = await groq.chat.completions.create({
     model: MODEL,
     messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-    max_tokens: 1024,
+    temperature: options.temperature ?? 0.5,
+    max_tokens: options.max_tokens ?? 3072,
+    ...(options.response_format ? { response_format: options.response_format } : {}),
   });
 
   return response.choices[0]?.message?.content ?? "";
@@ -246,10 +247,10 @@ Requirements:
 - experience MUST use "currentlyWorking" (not "current").
 - skills MUST be a flat array of strings.
 - If a section or field is not present in the text, use an empty string "" or an empty array [].
-- Return ONLY valid raw JSON. Do not wrap in markdown code blocks.
+- Return ONLY valid raw JSON without extra conversational text or markdown code blocks. Keep descriptions clear and concise.
 `;
 
-  return callGroq(prompt);
+  return callGroq(prompt, { temperature: 0.1, max_tokens: 8192 });
 };
 
 module.exports = {

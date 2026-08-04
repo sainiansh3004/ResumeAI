@@ -134,9 +134,14 @@ export default function ResumeBuilder() {
             interests: parsed.interests && parsed.interests.length > 0 ? parsed.interests : resume.interests,
           };
           setResume(merged);
-          setSaved(false);
+          setSaved(true);
+          try {
+            await updateResume(id as string, merged);
+          } catch (saveErr) {
+            console.error("Auto-save after PDF import error:", saveErr);
+          }
           setSidebarMode("ai"); // Switch directly to AI Suite so ATS score is shown immediately!
-          alert("🎉 PDF Resume parsed successfully! Your ATS Score and detailed recommendations are now visible in the AI Suite.");
+          alert("🎉 PDF Resume parsed & saved successfully! Your ATS Score and detailed recommendations are now visible in the AI Suite.");
         } else {
           alert("Failed to parse PDF resume.");
         }

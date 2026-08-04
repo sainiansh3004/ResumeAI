@@ -146,6 +146,20 @@ const recommendSkills = async (req, res) => {
 const sanitizeResumeData = (data) => {
   const safe = { ...data };
 
+  // personalInfo: must use fullName and standard keys
+  const pi = safe.personalInfo || {};
+  safe.personalInfo = {
+    fullName: pi.fullName || pi.name || pi.candidateName || "",
+    headline: pi.headline || pi.title || pi.role || pi.designation || "",
+    email: pi.email || "",
+    phone: pi.phone || pi.mobile || pi.contact || "",
+    address: pi.address || pi.location || pi.city || "",
+    linkedin: pi.linkedin || "",
+    github: pi.github || "",
+    portfolio: pi.portfolio || pi.website || "",
+    summary: pi.summary || pi.bio || pi.about || "",
+  };
+
   // achievements: must be [{ title, description }]
   if (Array.isArray(safe.achievements)) {
     safe.achievements = safe.achievements.map((item) => {
@@ -274,10 +288,38 @@ const parseResumePdf = async (req, res) => {
 
     let parsedResume = {};
     try {
-      const cleaned = rawResult.replace(/```json\n?/g, "").replace(/```/g, "").trim();
-      parsedResume = JSON.parse(cleaned);
+      let cleaned = rawResult.replace(/```json\n?/g, "").replace(/```/g, "").trim();
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+      }
+      try {
+        parsedResume = JSON.parse(cleaned);
+      } catch (e1) {
+        // Fix potential trailing commas or truncated closing braces/brackets
+        let repaired = cleaned.replace(/,\s*([\}\]])/g, "$1");
+        try {
+          parsedResume = JSON.parse(repaired);
+        } catch (e2) {
+          // Attempt automatic bracket/quote repair for truncated output
+          if (repaired.length > 10) {
+            const quoteCount = (repaired.match(/"/g) || []).length;
+            if (quoteCount % 2 !== 0) repaired += '"';
+            let openCurly = (repaired.match(/\{/g) || []).length;
+            let closeCurly = (repaired.match(/\}/g) || []).length;
+            let openSquare = (repaired.match(/\[/g) || []).length;
+            let closeSquare = (repaired.match(/\]/g) || []).length;
+            while (openSquare > closeSquare) { repaired += ']'; closeSquare++; }
+            while (openCurly > closeCurly) { repaired += '}'; closeCurly++; }
+            parsedResume = JSON.parse(repaired);
+          } else {
+            throw e2;
+          }
+        }
+      }
     } catch (e) {
-      console.error("JSON parse error from AI:", e);
+      console.error("JSON parse error from AI:", e, "\nRaw AI output was:\n", rawResult);
       return res.status(500).json({
         success: false,
         message: "Failed to format structured resume data from AI response.",

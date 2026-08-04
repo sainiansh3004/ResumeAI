@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Upload, RefreshCw } from "lucide-react";
 import {
   getMyResumes,
   createResume,
   deleteResume,
   duplicateResume,
 } from "@/services/resumeService";
+import { parsePdfResume } from "@/services/aiService";
 import { Resume } from "@/types/resume";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/services/billingService";
 import { getMyPortfolio, convertResumeToPortfolio } from "@/services/portfolioService";
@@ -25,7 +27,33 @@ export default function DashboardPage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [portfolio, setPortfolio] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [importingPdf, setImportingPdf] = useState(false);
+  const dashboardFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportPDFOnDashboard = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportingPdf(true);
+    try {
+      const res = await parsePdfResume(file);
+      if (res.success && res.resume) {
+        const created = await createResume(res.resume);
+        if (created.success && created.resume?._id) {
+          router.push(`/resume/${created.resume._id}`);
+        } else {
+          alert("Failed to create resume from imported PDF.");
+        }
+      } else {
+        alert("Failed to parse PDF resume. Please ensure it contains readable text.");
+      }
+    } catch (err: any) {
+      console.error("Dashboard PDF import error:", err);
+      alert(err.response?.data?.message || "Failed to parse PDF resume.");
+    } finally {
+      setImportingPdf(false);
+      if (e.target) e.target.value = "";
+    }
+  };
   const [search, setSearch] = useState("");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [subdomainInput, setSubdomainInput] = useState("");
@@ -251,6 +279,26 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <input
+              type="file"
+              ref={dashboardFileInputRef}
+              onChange={handleImportPDFOnDashboard}
+              accept=".pdf,.json,application/pdf,application/json"
+              className="hidden"
+            />
+            <button
+              onClick={() => dashboardFileInputRef.current?.click()}
+              disabled={importingPdf}
+              className="px-5 py-3 rounded-2xl bg-gray-900 text-white text-xs font-bold transition-all shadow-md hover:bg-gray-800 hover:-translate-y-0.5 disabled:opacity-50 flex items-center gap-2"
+            >
+              {importingPdf ? (
+                <RefreshCw className="h-4 w-4 animate-spin text-blue-400" />
+              ) : (
+                <Upload className="h-4 w-4 text-blue-400" />
+              )}
+              <span>{importingPdf ? "Parsing PDF..." : "Import PDF Resume"}</span>
+            </button>
+
             <button
               onClick={handleCreateResume}
               disabled={creating}
@@ -258,7 +306,7 @@ export default function DashboardPage() {
               style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
             >
               <span>+</span>
-              {creating ? "Creating..." : "Create New Resume"}
+              {creating ? "Creating..." : "Create Blank Resume"}
             </button>
           </div>
         </div>
@@ -317,16 +365,30 @@ export default function DashboardPage() {
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-gray-900">No resumes found</h3>
                 <p className="text-xs text-gray-500">
-                  {search ? "No resumes match your search criteria." : "Get started by creating your first resume!"}
+                  {search ? "No resumes match your search criteria." : "Import your existing PDF resume or start with a blank template!"}
                 </p>
               </div>
-              <button
-                onClick={handleCreateResume}
-                disabled={creating}
-                className="px-6 py-3 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"
-              >
-                + Create Resume
-              </button>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={() => dashboardFileInputRef.current?.click()}
+                  disabled={importingPdf}
+                  className="px-6 py-3 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition flex items-center gap-2"
+                >
+                  {importingPdf ? (
+                    <RefreshCw className="h-4 w-4 animate-spin text-blue-400" />
+                  ) : (
+                    <Upload className="h-4 w-4 text-blue-400" />
+                  )}
+                  <span>{importingPdf ? "Parsing..." : "Import PDF Resume"}</span>
+                </button>
+                <button
+                  onClick={handleCreateResume}
+                  disabled={creating}
+                  className="px-6 py-3 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition"
+                >
+                  + Create Blank Resume
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

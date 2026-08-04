@@ -236,6 +236,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
+          <div className="flex items-center gap-4">
             <button
               onClick={handleCreateResume}
               disabled={creating}

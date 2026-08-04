@@ -2,7 +2,7 @@
 import { Resume, ResumeSettings, PaperSize } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles, X, FileText } from "lucide-react";
+import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles, X, FileText, Share2 } from "lucide-react";
 import { useUndoRedo } from "@/utils/useUndoRedo";
 
 import { getResumeById, updateResume } from "@/services/resumeService";

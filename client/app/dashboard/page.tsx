@@ -419,13 +419,25 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="border-t border-gray-100 pt-4 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={(e) => handleDuplicate(resume._id!, e)}
                         className="text-gray-500 hover:text-blue-600 font-semibold transition py-1 px-2 rounded-lg hover:bg-gray-50"
                         title="Duplicate Resume"
                       >
                         📋 Copy
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const publicUrl = `${window.location.origin}/view/${resume._id}`;
+                          navigator.clipboard.writeText(publicUrl);
+                          alert("🔗 Public share link copied to clipboard!\n\nAnyone can view your resume at:\n" + publicUrl);
+                        }}
+                        className="text-gray-500 hover:text-emerald-600 font-semibold transition py-1 px-2 rounded-lg hover:bg-emerald-50"
+                        title="Copy public link so anyone can view your resume"
+                      >
+                        🔗 Share
                       </button>
                       <button
                         onClick={(e) => {

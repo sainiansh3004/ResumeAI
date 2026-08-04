@@ -100,3 +100,8 @@ export const duplicateResume = async (id: string) => {
 
   return res.data;
 };
+
+export const getPublicResumeById = async (id: string) => {
+  const res = await axios.get(`${API_URL}/public/${id}`);
+  return res.data;
+};

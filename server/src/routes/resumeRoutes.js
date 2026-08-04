@@ -5,12 +5,18 @@ const {
   createResume,
   getMyResumes,
   getResumeById,
+  getPublicResumeById,
   updateResume,
   deleteResume,
   duplicateResume,
 } = require("../controllers/resumeController");
 
 const protect = require("../middleware/authMiddleware");
+
+// ==========================
+// Public Resume Route (No Auth Required)
+// ==========================
+router.get("/public/:id", getPublicResumeById);
 
 // ==========================
 // Create Resume

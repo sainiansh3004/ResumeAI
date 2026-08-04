@@ -84,9 +84,26 @@ const getResumeById = async (req, res) => {
       success: true,
       resume,
     });
-  } catch (error) {
-    console.error("GET RESUME ERROR:", error);
+// ==========================
+// Get Public Resume By ID (No auth required)
+// ==========================
+const getPublicResumeById = async (req, res) => {
+  try {
+    const resume = await Resume.findById(req.params.id);
 
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      resume,
+    });
+  } catch (error) {
+    console.error("GET PUBLIC RESUME ERROR:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -242,6 +259,7 @@ module.exports = {
   createResume,
   getMyResumes,
   getResumeById,
+  getPublicResumeById,
   updateResume,
   deleteResume,
   duplicateResume,

@@ -842,6 +842,20 @@ const handleSettingsChange = (
           <span>Download PDF</span>
         </button>
 
+        {/* Public Share Link Button */}
+        <button
+          onClick={() => {
+            const publicUrl = `${window.location.origin}/view/${id}`;
+            navigator.clipboard.writeText(publicUrl);
+            alert("🔗 Public shareable resume link copied to clipboard!\n\nAnyone can view your resume at:\n" + publicUrl);
+          }}
+          className="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-white transition hover:bg-emerald-700 font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+          title="Copy public link so anyone can view your resume"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+          <span>Share</span>
+        </button>
+
         {/* Quick Template Switcher */}
         <select
           value={resume.template}

@@ -79,12 +79,25 @@ export const updateResume = async (id: string, data: any) => {
   return res.data;
 };
 export const getResumeById = async (id: string) => {
-  const res = await axios.get(`${API_URL}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-    },
-  });
+  const token = getToken();
+  if (token) {
+    try {
+      const res = await axios.get(`${API_URL}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.data;
+    } catch (err: any) {
+      // If unauthorized / token expired, fall back to public resume endpoint
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        throw err;
+      }
+    }
+  }
 
+  // Public endpoint fallback
+  const res = await axios.get(`${API_URL}/public/${id}`);
   return res.data;
 };
 

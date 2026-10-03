@@ -79,7 +79,7 @@ export default function OffCampusTemplate({ resume }: Props) {
         )}
 
         <div className="flex-1 text-center">
-          <h1 className={`text-3xl font-extrabold uppercase tracking-tight ${theme.primary}`}>
+          <h1 className={`text-3xl font-extrabold uppercase tracking-wide ${theme.primary}`}>
             {personalInfo.fullName || "Your Name"}
           </h1>
 
@@ -138,7 +138,7 @@ export default function OffCampusTemplate({ resume }: Props) {
                   <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
                     {title}
                   </h2>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-800 text-justify">
+                  <p className="mt-1.5 text-xs leading-relaxed text-gray-800">
                     {personalInfo.summary}
                   </p>
                 </section>

@@ -181,16 +181,20 @@ const parseResumeFromText = async (resumeText) => {
   const cleanedText = (resumeText || "")
     .replace(/\n\s*\n+/g, "\n")
     .trim()
-    .substring(0, 4000);
+    .substring(0, 8000);
 
-  const prompt = `
-Extract and structure candidate details into JSON matching this structure:
+  const prompt = `You are an expert resume parser. Extract ALL details from the resume text below into JSON.
+
+Resume Text:
+${cleanedText}
+
+Return JSON matching this EXACT structure:
 {
-  "title": "Resume",
+  "title": "Candidate Name Resume",
   "personalInfo": { "fullName": "", "headline": "", "email": "", "phone": "", "address": "", "linkedin": "", "github": "", "portfolio": "", "summary": "" },
   "education": [{ "college": "", "degree": "", "fieldOfStudy": "", "startYear": "", "endYear": "", "cgpa": "" }],
   "experience": [{ "company": "", "position": "", "location": "", "employmentType": "", "startDate": "", "endDate": "", "currentlyWorking": false, "description": "" }],
-  "skills": [],
+  "skills": ["skill1", "skill2"],
   "projects": [{ "title": "", "description": "", "technologies": [], "github": "", "liveDemo": "" }],
   "certifications": [{ "name": "", "organization": "", "issueDate": "" }],
   "achievements": [{ "title": "", "description": "" }],
@@ -198,17 +202,16 @@ Extract and structure candidate details into JSON matching this structure:
   "interests": [{ "name": "" }]
 }
 
-Resume Text:
-${cleanedText}
+CRITICAL RULES:
+- Extract EVERY experience entry, project, skill, education, certification, and achievement from the text. Do NOT skip any.
+- "description" in experience and projects must contain the FULL text of all bullet points combined.
+- "skills" must be a flat array of ALL technical skills, tools, languages, and frameworks mentioned.
+- "headline" should be the job title or tagline shown below the name (e.g. "Software Engineer | Full Stack Developer").
+- Use "startYear"/"endYear" for education (e.g. "2022", "2026"), use "startDate"/"endDate" for experience.
+- If a field is missing, use empty string "" or empty array [].
+- Return ONLY valid JSON. No markdown, no explanation.`;
 
-Rules:
-- Extract all experience, projects, skills, education, certifications, and achievements.
-- Preserve bullet points and descriptions in full text inside "description".
-- achievements/languages/interests/projects/education MUST use array of objects with keys specified above.
-- Return ONLY valid raw JSON without markdown formatting.
-`;
-
-  return callGroq(prompt, { temperature: 0.1, max_tokens: 3000, response_format: { type: "json_object" } });
+  return callGroq(prompt, { temperature: 0.1, max_tokens: 4096, response_format: { type: "json_object" } });
 };
 
 module.exports = {

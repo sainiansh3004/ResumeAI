@@ -41,15 +41,12 @@ export default function A4Container({
     if (fitToOnePage) {
       // Force unscaled height check for 1-page fit
       const currentTransform = inner.style.transform;
-      const currentZoom = (inner.style as any).zoom;
       inner.style.transform = "none";
-      (inner.style as any).zoom = "1";
 
       const contentHeight = inner.scrollHeight || inner.offsetHeight;
       const targetHeight = dimensions.height - (padding ? parseInt(padding, 10) * 2 : 48);
 
       inner.style.transform = currentTransform;
-      (inner.style as any).zoom = currentZoom;
 
       if (contentHeight > targetHeight) {
         const calculatedScale = Math.min(1, targetHeight / (contentHeight + 5));
@@ -87,7 +84,6 @@ export default function A4Container({
         style={{
           ...(fitToOnePage && scale < 1
             ? {
-                zoom: scale,
                 transform: `scale(${scale})`,
                 transformOrigin: "top center",
               }

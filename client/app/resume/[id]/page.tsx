@@ -2,7 +2,7 @@
 import { Resume, ResumeSettings, PaperSize } from "@/types/resume";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles, X, FileText, Share2 } from "lucide-react";
+import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles, X, FileText, Share2, Printer } from "lucide-react";
 import { useUndoRedo } from "@/utils/useUndoRedo";
 
 import { getResumeById, updateResume } from "@/services/resumeService";
@@ -226,7 +226,12 @@ export default function ResumeBuilder() {
   // Download 1-Page PDF Resume
   // ==========================
   const downloadPDF = async () => {
-    const el = document.getElementById("resume-card") || document.getElementById("print-area");
+    // Target the primary print-area card, avoiding any modal previews
+    const el =
+      (document.getElementById("print-area")?.querySelector("#resume-card") as HTMLElement) ||
+      document.getElementById("resume-card") ||
+      document.getElementById("print-area");
+
     if (!el) {
       window.print();
       return;
@@ -234,6 +239,11 @@ export default function ResumeBuilder() {
 
     try {
       setDownloadingPDF(true);
+
+      // Wait for all web fonts to load completely
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
 
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
@@ -259,11 +269,32 @@ export default function ResumeBuilder() {
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        windowWidth: 1200,
         onclone: (clonedDoc) => {
           try {
-            // 1. Hide red line badges and styling from any existing spacers in cloned DOM
-            const hideMarkerStyle = clonedDoc.createElement("style");
-            hideMarkerStyle.textContent = `
+            // 1. Propagate Next.js root classes and font variables
+            clonedDoc.documentElement.className = document.documentElement.className;
+            clonedDoc.body.className = document.body.className;
+
+            // 2. Add active document fonts to cloned document
+            if (document.fonts) {
+              document.fonts.forEach((font) => {
+                try {
+                  clonedDoc.fonts.add(font);
+                } catch (e) {}
+              });
+            }
+
+            // 3. Reset letter-spacing, text-rendering, and word-spacing
+            // html2canvas severely miscalculates glyph advances with tracking-tight or negative letter-spacing
+            const fontResetStyle = clonedDoc.createElement("style");
+            fontResetStyle.textContent = `
+              * {
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
+                font-kerning: normal !important;
+                text-rendering: geometricPrecision !important;
+              }
               .pdf-page-break-spacer {
                 border: none !important;
                 margin: 0 !important;
@@ -274,9 +305,30 @@ export default function ResumeBuilder() {
                 content: "" !important;
               }
             `;
-            clonedDoc.head.appendChild(hideMarkerStyle);
+            clonedDoc.head.appendChild(fontResetStyle);
 
-            // 2. Strip oklch references from cloned style sheets
+            // 4. CRITICAL FIX: Reset CSS zoom and transforms from target card and all children
+            // CSS zoom breaks character bounding rects in html2canvas, causing squashed/overlapping text
+            const targetCard = clonedDoc.getElementById("resume-card");
+            if (targetCard) {
+              (targetCard.style as any).zoom = "1";
+              targetCard.style.transform = "none";
+              targetCard.style.maxHeight = "none";
+              targetCard.style.height = "auto";
+              targetCard.style.overflow = "visible";
+            }
+
+            const allClonedNodes = clonedDoc.querySelectorAll<HTMLElement>("#resume-card, #resume-card *");
+            allClonedNodes.forEach((node) => {
+              if ((node.style as any).zoom) {
+                (node.style as any).zoom = "1";
+              }
+              if (node.style.transform && node.style.transform.includes("scale")) {
+                node.style.transform = "none";
+              }
+            });
+
+            // 5. Strip oklch references from cloned style sheets
             const styleNodes = clonedDoc.querySelectorAll("style");
             styleNodes.forEach((s) => {
               if (s.textContent && s.textContent.includes("oklch")) {
@@ -284,8 +336,7 @@ export default function ResumeBuilder() {
               }
             });
 
-            const elements = clonedDoc.querySelectorAll<HTMLElement>("*");
-            elements.forEach((node) => {
+            allClonedNodes.forEach((node) => {
               try {
                 const style = window.getComputedStyle(node);
                 const color = style.color;
@@ -304,7 +355,7 @@ export default function ResumeBuilder() {
               } catch (e) {}
             });
 
-            // 3. SMART PAGE BREAK PROTECTION: Calculate exact white page spacers for cloned DOM
+            // 6. SMART PAGE BREAK PROTECTION for multi-page mode
             const container = clonedDoc.getElementById("resume-card");
             if (container && !resume.settings?.fitToOnePage) {
               const paperSize = resume.settings?.paperSize || "a4";
@@ -339,7 +390,9 @@ export default function ResumeBuilder() {
                 }
               });
             }
-          } catch (e) {}
+          } catch (e) {
+            console.error("onclone processing error:", e);
+          }
         },
       });
 
@@ -1200,7 +1253,7 @@ const handleSettingsChange = (
             </div>
 
             {/* Scrollable Full Resume Paper Cards with Page Break Visualizers */}
-            <div className="relative shadow-2xl bg-white border border-gray-300 rounded-sm my-2 transition-all" style={{ zoom: 0.82 }}>
+            <div className="relative shadow-2xl bg-white border border-gray-300 rounded-sm my-2 transition-all origin-top scale-[0.82]">
               <ResumePreview resume={resume} />
             </div>
           </div>
@@ -1221,6 +1274,18 @@ const handleSettingsChange = (
                 className="px-4 py-2 text-xs font-bold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer"
               >
                 Cancel
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowPDFPreview(false);
+                  setTimeout(() => window.print(), 200);
+                }}
+                className="px-4 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                title="Print or Save via Browser (Cmd+P) for 100% Vector ATS PDF"
+              >
+                <Printer className="h-4 w-4 text-gray-600" />
+                <span>Print / Vector PDF</span>
               </button>
 
               <button

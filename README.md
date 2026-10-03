@@ -119,9 +119,11 @@ Create resumes with fully customizable sections:
 
 ### 📄 Export
 
-- High Quality PDF Export via browser print
-- Print-optimized CSS (only resume prints, no sidebar)
-- ATS Compatible output
+- **Dual PDF Generation Engine**:
+  - **Direct High-Res PDF Download**: Client-side html2canvas + jsPDF engine with full font synchronization, dynamic glyph spacing, single-page strict fit, and multi-page smart page break protection.
+  - **Vector ATS-Perfect Print Export**: Native browser print (`Cmd+P` / Save as PDF) with print-optimized CSS, selectable text, active hyperlinks, and zero margin bleed.
+- **Universal Export Access**: Available directly from both the Resume Builder (`/resume/:id`) and the Public Shareable View (`/view/:id`).
+- **Resilient Fallback**: Automatic public resume fallback ensures resumes load seamlessly without 401 auth errors.
 
 ---
 

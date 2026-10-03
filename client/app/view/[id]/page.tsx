@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Printer, Share2, Sparkles, Check, ArrowLeft } from "lucide-react";
+import { Printer, Share2, Sparkles, Check, ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { getPublicResumeById } from "@/services/resumeService";
 import { Resume } from "@/types/resume";
 import ResumePreview from "@/components/resume/ResumePreview";
@@ -16,6 +16,7 @@ export default function PublicResumeViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -46,6 +47,98 @@ export default function PublicResumeViewPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    const el = document.getElementById("resume-card");
+    if (!el) {
+      window.print();
+      return;
+    }
+
+    try {
+      setDownloadingPDF(true);
+
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 1200,
+        onclone: (clonedDoc) => {
+          try {
+            clonedDoc.documentElement.className = document.documentElement.className;
+            clonedDoc.body.className = document.body.className;
+
+            if (document.fonts) {
+              document.fonts.forEach((font) => {
+                try {
+                  clonedDoc.fonts.add(font);
+                } catch (e) {}
+              });
+            }
+
+            const fontResetStyle = clonedDoc.createElement("style");
+            fontResetStyle.textContent = `
+              * {
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
+                font-kerning: normal !important;
+                text-rendering: geometricPrecision !important;
+              }
+            `;
+            clonedDoc.head.appendChild(fontResetStyle);
+
+            const targetCard = clonedDoc.getElementById("resume-card");
+            if (targetCard) {
+              (targetCard.style as any).zoom = "1";
+              targetCard.style.transform = "none";
+              targetCard.style.maxHeight = "none";
+              targetCard.style.height = "auto";
+              targetCard.style.overflow = "visible";
+            }
+
+            const allClonedNodes = clonedDoc.querySelectorAll<HTMLElement>("#resume-card, #resume-card *");
+            allClonedNodes.forEach((node) => {
+              if ((node.style as any).zoom) {
+                (node.style as any).zoom = "1";
+              }
+              if (node.style.transform && node.style.transform.includes("scale")) {
+                node.style.transform = "none";
+              }
+            });
+          } catch (e) {
+            console.error("onclone error:", e);
+          }
+        },
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const paperSize = resume?.settings?.paperSize || "a4";
+      let pdfWidth = paperSize === "letter" ? 215.9 : 210;
+      let pdfHeight = paperSize === "letter" ? 279.4 : 297;
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight],
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${resume?.title || resume?.personalInfo?.fullName || "Resume"}.pdf`);
+    } catch (err) {
+      console.error("PDF download failed, falling back to print:", err);
+      window.print();
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   if (loading) {
@@ -110,10 +203,29 @@ export default function PublicResumeViewPage() {
           </button>
 
           <button
-            onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-500/20"
+            onClick={handleDownloadPDF}
+            disabled={downloadingPDF}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-500/20 disabled:opacity-50 cursor-pointer"
           >
-            <Printer className="w-3.5 h-3.5" />
+            {downloadingPDF ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5" />
+                <span>Download PDF</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-2 border border-slate-700 cursor-pointer"
+            title="Print or Save as Vector PDF (Cmd+P)"
+          >
+            <Printer className="w-3.5 h-3.5 text-blue-400" />
             <span>Print / Save PDF</span>
           </button>
 

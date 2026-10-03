@@ -54,17 +54,20 @@ export default function AcademicTemplate({ resume }: Props) {
     }
   };
 
-  const order = resume.sectionOrder || [
-    "summary",
-    "education",
-    "experience",
-    "skills",
-    "projects",
-    "certifications",
-    "achievements",
-    "languages",
-    "interests",
-  ];
+  const rawOrder = Array.isArray(resume.sectionOrder) && resume.sectionOrder.length > 0
+    ? resume.sectionOrder
+    : [
+        "summary",
+        "education",
+        "experience",
+        "skills",
+        "projects",
+        "certifications",
+        "achievements",
+        "languages",
+        "interests",
+      ];
+  const order = rawOrder.includes("summary") ? rawOrder : ["summary", ...rawOrder];
 
   const renderSection = (sectionKey: string) => {
     if (hiddenSections.includes(sectionKey)) return null;

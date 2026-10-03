@@ -291,7 +291,7 @@ const resumeSchema = new mongoose.Schema(
 
     sectionOrder: {
       type: [String],
-      default: ["experience", "education", "skills", "projects", "certifications", "achievements", "languages", "interests"],
+      default: ["summary", "experience", "education", "skills", "projects", "certifications", "achievements", "languages", "interests"],
     },
   },
   {

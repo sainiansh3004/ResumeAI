@@ -49,14 +49,55 @@ const callGroq = async (prompt, options = {}) => {
   throw lastError || new Error("All Groq AI models failed to respond.");
 };
 
+// Helper to strip heavy fields (like base64 photos) before sending to LLM
+const cleanResumeForSummary = (data) => {
+  if (!data || typeof data !== "object") return String(data || "");
+
+  const pi = data.personalInfo || {};
+  return {
+    fullName: pi.fullName || pi.name || "",
+    headline: pi.headline || pi.title || "",
+    skills: Array.isArray(data.skills) ? data.skills : [],
+    experience: Array.isArray(data.experience)
+      ? data.experience.map((e) => ({
+          company: e.company || "",
+          position: e.position || e.role || "",
+          description: e.description || "",
+        }))
+      : [],
+    education: Array.isArray(data.education)
+      ? data.education.map((e) => ({
+          institution: e.college || e.institution || "",
+          degree: e.degree || "",
+          field: e.fieldOfStudy || e.field || "",
+        }))
+      : [],
+    projects: Array.isArray(data.projects)
+      ? data.projects.map((p) => ({
+          name: p.title || p.name || "",
+          description: p.description || "",
+          technologies: p.technologies || [],
+        }))
+      : [],
+    certifications: Array.isArray(data.certifications)
+      ? data.certifications.map((c) => (typeof c === "string" ? c : c.name || ""))
+      : [],
+  };
+};
+
 // ==========================
 // Generate Summary
 // ==========================
 const generateSummary = async (resumeData) => {
+  const cleanedData =
+    typeof resumeData === "object" && resumeData !== null
+      ? cleanResumeForSummary(resumeData)
+      : resumeData;
+
   const formattedData =
-    typeof resumeData === "string"
-      ? resumeData
-      : JSON.stringify(resumeData, null, 2);
+    typeof cleanedData === "string"
+      ? cleanedData
+      : JSON.stringify(cleanedData, null, 2);
 
   const prompt = `You are a professional resume writer.
 

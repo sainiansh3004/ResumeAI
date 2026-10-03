@@ -279,6 +279,25 @@ const sanitizeResumeData = (data) => {
     safe.skills = [];
   }
 
+  // sectionOrder: ensure "summary" is always present
+  if (Array.isArray(safe.sectionOrder) && safe.sectionOrder.length > 0) {
+    if (!safe.sectionOrder.includes("summary")) {
+      safe.sectionOrder = ["summary", ...safe.sectionOrder];
+    }
+  } else {
+    safe.sectionOrder = [
+      "summary",
+      "experience",
+      "education",
+      "skills",
+      "projects",
+      "certifications",
+      "achievements",
+      "languages",
+      "interests",
+    ];
+  }
+
   // Default title
   if (!safe.title || safe.title === "Resume" || safe.title === "Candidate Name Resume" || safe.title === "Untitled Resume") {
     safe.title = safe.personalInfo?.fullName ? `${safe.personalInfo.fullName} Resume` : "My Resume";

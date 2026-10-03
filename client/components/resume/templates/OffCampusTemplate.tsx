@@ -345,7 +345,22 @@ export default function OffCampusTemplate({ resume }: Props) {
           }
         };
 
-        return sectionOrder.map((sectionKey) => renderSection(sectionKey));
+        const rawOrder = Array.isArray(sectionOrder) && sectionOrder.length > 0
+          ? sectionOrder
+          : [
+              "summary",
+              "experience",
+              "education",
+              "skills",
+              "projects",
+              "certifications",
+              "achievements",
+              "languages",
+              "interests",
+            ];
+        const effectiveOrder = rawOrder.includes("summary") ? rawOrder : ["summary", ...rawOrder];
+
+        return effectiveOrder.map((sectionKey) => renderSection(sectionKey));
       })()}
     </div>
   );

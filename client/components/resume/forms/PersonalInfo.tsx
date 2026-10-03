@@ -125,9 +125,9 @@ const removePhoto = () => {
 
       setForm(updated);
       onChange(updated);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to generate AI summary.");
+      alert(error.response?.data?.message || "Failed to generate AI summary.");
     } finally {
       setGenerating(false);
     }

@@ -64,17 +64,20 @@ export default function ExecutiveTemplate({ resume }: Props) {
     }
   };
 
-  const order = resume.sectionOrder || [
-    "summary",
-    "education",
-    "experience",
-    "skills",
-    "projects",
-    "certifications",
-    "achievements",
-    "languages",
-    "interests",
-  ];
+  const rawOrder = Array.isArray(resume.sectionOrder) && resume.sectionOrder.length > 0
+    ? resume.sectionOrder
+    : [
+        "summary",
+        "education",
+        "experience",
+        "skills",
+        "projects",
+        "certifications",
+        "achievements",
+        "languages",
+        "interests",
+      ];
+  const order = rawOrder.includes("summary") ? rawOrder : ["summary", ...rawOrder];
 
   const sidebarKeys = ["skills", "certifications", "languages", "interests"];
   const mainKeys = ["summary", "experience", "projects", "education", "achievements"];

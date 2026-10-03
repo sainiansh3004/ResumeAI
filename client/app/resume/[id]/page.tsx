@@ -526,17 +526,22 @@ useEffect(() => {
             title: fetched.title || "Untitled Resume",
             template: fetched.template || "offcampus",
             themeColor: fetched.themeColor || "blue",
-            sectionOrder: fetched.sectionOrder || [
-              "summary",
-              "education",
-              "experience",
-              "skills",
-              "projects",
-              "certifications",
-              "achievements",
-              "languages",
-              "interests",
-            ],
+            sectionOrder: (() => {
+              const base = Array.isArray(fetched.sectionOrder) && fetched.sectionOrder.length > 0
+                ? fetched.sectionOrder
+                : [
+                    "summary",
+                    "experience",
+                    "education",
+                    "skills",
+                    "projects",
+                    "certifications",
+                    "achievements",
+                    "languages",
+                    "interests",
+                  ];
+              return base.includes("summary") ? base : ["summary", ...base];
+            })(),
             personalInfo: {
               fullName: fetched.personalInfo?.fullName || "",
               headline: fetched.personalInfo?.headline || "",

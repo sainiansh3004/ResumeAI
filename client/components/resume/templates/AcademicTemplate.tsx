@@ -172,18 +172,37 @@ export default function AcademicTemplate({ resume }: Props) {
             </h2>
             {resume.projects?.length > 0 ? (
               <div className="space-y-3">
-                {resume.projects.map((project, index) => (
+                {resume.projects.map((project, index) => {
+                  const githubUrl = project.github || (project as any).githubUrl;
+                  const demoUrl =
+                    project.liveDemo ||
+                    (project as any).liveUrl ||
+                    (project as any).demo ||
+                    (project as any).url;
+                  return (
                   <div key={index} className="break-inside-avoid text-xs">
                     <div className="flex justify-between items-baseline">
                       <span className="font-semibold text-gray-900">{project.title}</span>
                       <div className="flex gap-3 text-[11px]">
-                        {project.github && (
-                          <a href={formatUrl(project.github)} target="_blank" rel="noopener noreferrer" className="text-blue-900 hover:underline">
+                        {githubUrl && (
+                          <a
+                            href={formatUrl(githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-900 hover:underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Code
                           </a>
                         )}
-                        {project.liveDemo && (
-                          <a href={formatUrl(project.liveDemo)} target="_blank" rel="noopener noreferrer" className="text-blue-900 hover:underline">
+                        {demoUrl && (
+                          <a
+                            href={formatUrl(demoUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-900 hover:underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Link
                           </a>
                         )}
@@ -200,7 +219,8 @@ export default function AcademicTemplate({ resume }: Props) {
                       </p>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-gray-400 italic">No projects added yet.</p>
@@ -311,34 +331,34 @@ export default function AcademicTemplate({ resume }: Props) {
         )}
 
         {/* Contact details layout in a single line with bullet separation */}
-        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-gray-600 italic">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
-          {personalInfo.phone && <span>• {personalInfo.phone}</span>}
-          {personalInfo.address && <span>• {personalInfo.address}</span>}
-          {personalInfo.linkedin && (
-            <span>
-              •{" "}
-              <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                LinkedIn
-              </a>
-            </span>
-          )}
-          {personalInfo.github && (
-            <span>
-              •{" "}
-              <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                GitHub
-              </a>
-            </span>
-          )}
-          {personalInfo.portfolio && (
-            <span>
-              •{" "}
-              <a href={personalInfo.portfolio} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                Website
-              </a>
-            </span>
-          )}
+        <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[11px] text-gray-600 italic">
+          {[
+            personalInfo.email ? { val: personalInfo.email, href: `mailto:${personalInfo.email}` } : null,
+            personalInfo.phone ? { val: personalInfo.phone, href: `tel:${personalInfo.phone}` } : null,
+            personalInfo.address ? { val: personalInfo.address } : null,
+            personalInfo.linkedin ? { val: "LinkedIn", href: formatUrl(personalInfo.linkedin) } : null,
+            personalInfo.github ? { val: "GitHub", href: formatUrl(personalInfo.github) } : null,
+            personalInfo.portfolio ? { val: "Website", href: formatUrl(personalInfo.portfolio) } : null,
+          ]
+            .filter(Boolean)
+            .map((item: any, idx, arr) => (
+              <span key={idx} className="flex items-center gap-x-3">
+                {item.href ? (
+                  <a
+                    href={item.href}
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
+                    rel="noopener noreferrer"
+                    className="hover:underline cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {item.val}
+                  </a>
+                ) : (
+                  <span>{item.val}</span>
+                )}
+                {idx < arr.length - 1 && <span className="select-none">•</span>}
+              </span>
+            ))}
         </div>
       </div>
 

@@ -233,38 +233,45 @@ export default function OffCampusTemplate({ resume }: Props) {
                     {title}
                   </h2>
                   <div className="mt-1.5 space-y-2.5">
-                    {projects.map((project, index) => (
-                      <div key={index} className="break-inside-avoid">
-                        <div className="flex justify-between items-baseline text-xs">
-                          <span className="font-bold text-gray-950">{project.title || "Project Title"}</span>
-                          <div className="text-[11px] font-semibold flex items-center gap-1.5">
-                            {project.github && (
-                              <a
-                                href={formatUrl(project.github)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                GitHub
-                              </a>
-                            )}
-                            {project.github && project.liveDemo && (
-                              <span className="text-gray-400 font-normal select-none">•</span>
-                            )}
-                            {project.liveDemo && (
-                              <a
-                                href={formatUrl(project.liveDemo)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Demo
-                              </a>
-                            )}
+                    {projects.map((project, index) => {
+                      const githubUrl = project.github || (project as any).githubUrl;
+                      const demoUrl =
+                        project.liveDemo ||
+                        (project as any).liveUrl ||
+                        (project as any).demo ||
+                        (project as any).url;
+                      return (
+                        <div key={index} className="break-inside-avoid">
+                          <div className="flex justify-between items-baseline text-xs">
+                            <span className="font-bold text-gray-950">{project.title || "Project Title"}</span>
+                            <div className="text-[11px] font-semibold flex items-center gap-1.5">
+                              {githubUrl && (
+                                <a
+                                  href={formatUrl(githubUrl)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  GitHub
+                                </a>
+                              )}
+                              {githubUrl && demoUrl && (
+                                <span className="text-gray-400 font-normal select-none">•</span>
+                              )}
+                              {demoUrl && (
+                                <a
+                                  href={formatUrl(demoUrl)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Demo
+                                </a>
+                              )}
+                            </div>
                           </div>
-                        </div>
                         {project.technologies && project.technologies.length > 0 && (
                           <p className="text-[11px] font-semibold text-gray-700 mt-0.5">
                             Technologies: {project.technologies.join(", ")}
@@ -272,7 +279,8 @@ export default function OffCampusTemplate({ resume }: Props) {
                         )}
                         {renderBullets(project.description)}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
               );

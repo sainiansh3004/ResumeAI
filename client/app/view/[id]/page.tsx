@@ -7,6 +7,7 @@ import { Printer, Share2, Sparkles, Check, ArrowLeft, Download, RefreshCw } from
 import { getPublicResumeById } from "@/services/resumeService";
 import { Resume } from "@/types/resume";
 import ResumePreview from "@/components/resume/ResumePreview";
+import { formatUrl } from "@/utils/formatUrl";
 
 export default function PublicResumeViewPage() {
   const params = useParams();
@@ -66,6 +67,14 @@ export default function PublicResumeViewPage() {
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
 
+      let capturedLinks: Array<{
+        url: string;
+        xRatio: number;
+        yRatio: number;
+        wRatio: number;
+        hRatio: number;
+      }> = [];
+
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -103,17 +112,61 @@ export default function PublicResumeViewPage() {
               targetCard.style.maxHeight = "none";
               targetCard.style.height = "auto";
               targetCard.style.overflow = "visible";
-            }
 
-            const allClonedNodes = clonedDoc.querySelectorAll<HTMLElement>("#resume-card, #resume-card *");
-            allClonedNodes.forEach((node) => {
-              if ((node.style as any).zoom) {
-                (node.style as any).zoom = "1";
-              }
-              if (node.style.transform && node.style.transform.includes("scale")) {
-                node.style.transform = "none";
-              }
-            });
+              const allClonedNodes = targetCard.querySelectorAll<HTMLElement>("*");
+              allClonedNodes.forEach((node) => {
+                if ((node.style as any).zoom) {
+                  (node.style as any).zoom = "1";
+                }
+                if (node.style.transform && node.style.transform.includes("scale")) {
+                  node.style.transform = "none";
+                }
+              });
+
+              // Capture links directly from the rendered cloned card
+              const cardRect = targetCard.getBoundingClientRect();
+              const anchorNodes = targetCard.querySelectorAll<HTMLAnchorElement>("a[href]");
+              capturedLinks = [];
+
+              anchorNodes.forEach((a) => {
+                const rawHref = a.getAttribute("href") || a.href;
+                if (!rawHref || rawHref === "#" || rawHref.startsWith("javascript:")) return;
+
+                const url = formatUrl(rawHref);
+                if (!url) return;
+
+                const aRect = a.getBoundingClientRect();
+                let relLeft = aRect.left - cardRect.left;
+                let relTop = aRect.top - cardRect.top;
+                let relWidth = aRect.width;
+                let relHeight = aRect.height;
+
+                if (relWidth === 0 || relHeight === 0) {
+                  let curr: HTMLElement | null = a;
+                  let oTop = 0;
+                  let oLeft = 0;
+                  while (curr && curr !== targetCard) {
+                    oTop += curr.offsetTop || 0;
+                    oLeft += curr.offsetLeft || 0;
+                    curr = curr.offsetParent as HTMLElement | null;
+                  }
+                  relLeft = oLeft;
+                  relTop = oTop;
+                  relWidth = a.offsetWidth || 35;
+                  relHeight = a.offsetHeight || 14;
+                }
+
+                if (cardRect.width > 0 && cardRect.height > 0 && relWidth > 0 && relHeight > 0) {
+                  capturedLinks.push({
+                    url,
+                    xRatio: relLeft / cardRect.width,
+                    yRatio: relTop / cardRect.height,
+                    wRatio: relWidth / cardRect.width,
+                    hRatio: relHeight / cardRect.height,
+                  });
+                }
+              });
+            }
           } catch (e) {
             console.error("onclone error:", e);
           }
@@ -134,39 +187,24 @@ export default function PublicResumeViewPage() {
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 
       // Embed clickable PDF hyperlink annotations
-      try {
-        const { formatUrl } = await import("@/utils/formatUrl");
-        const containerRect = el.getBoundingClientRect();
-        const links = el.querySelectorAll<HTMLAnchorElement>("a[href]");
+      const padX = 1.2;
+      const padY = 0.8;
+      pdf.setPage(1);
 
-        links.forEach((a) => {
-          const rawHref = a.getAttribute("href") || a.href;
-          if (!rawHref || rawHref === "#" || rawHref.startsWith("javascript:")) return;
+      capturedLinks.forEach((link) => {
+        const x = link.xRatio * pdfWidth;
+        const y = link.yRatio * pdfHeight;
+        const w = link.wRatio * pdfWidth;
+        const h = link.hRatio * pdfHeight;
 
-          const url = formatUrl(rawHref);
-          if (!url) return;
-
-          const rect = a.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) return;
-
-          const relX = (rect.left - containerRect.left) / containerRect.width;
-          const relY = (rect.top - containerRect.top) / containerRect.height;
-          const relW = rect.width / containerRect.width;
-          const relH = rect.height / containerRect.height;
-
-          const padX = 1.0;
-          const padY = 0.5;
-
-          const x = relX * pdfWidth;
-          const y = relY * pdfHeight;
-          const w = relW * pdfWidth;
-          const h = relH * pdfHeight;
-
-          pdf.link(Math.max(0, x - padX), Math.max(0, y - padY), w + padX * 2, h + padY * 2, { url });
-        });
-      } catch (linkErr) {
-        console.error("Error embedding links into PDF:", linkErr);
-      }
+        pdf.link(
+          Math.max(0, x - padX),
+          Math.max(0, y - padY),
+          w + padX * 2,
+          h + padY * 2,
+          { url: link.url }
+        );
+      });
 
       pdf.save(`${resume?.title || resume?.personalInfo?.fullName || "Resume"}.pdf`);
     } catch (err) {

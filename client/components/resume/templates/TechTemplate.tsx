@@ -159,18 +159,37 @@ export default function TechTemplate({ resume }: Props) {
             </h2>
             {resume.projects?.length > 0 ? (
               <div className="space-y-3.5">
-                {resume.projects.map((project, index) => (
+                {resume.projects.map((project, index) => {
+                  const githubUrl = project.github || (project as any).githubUrl;
+                  const demoUrl =
+                    project.liveDemo ||
+                    (project as any).liveUrl ||
+                    (project as any).demo ||
+                    (project as any).url;
+                  return (
                   <div key={index} className="break-inside-avoid text-xs">
                     <div className="flex justify-between items-baseline">
                       <span className="font-semibold text-gray-900">{project.title}</span>
                       <div className="flex gap-2.5 text-[11px]">
-                        {project.github && (
-                          <a href={formatUrl(project.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {githubUrl && (
+                          <a
+                            href={formatUrl(githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Code
                           </a>
                         )}
-                        {project.liveDemo && (
-                          <a href={formatUrl(project.liveDemo)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {demoUrl && (
+                          <a
+                            href={formatUrl(demoUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Live Demo
                           </a>
                         )}
@@ -191,7 +210,8 @@ export default function TechTemplate({ resume }: Props) {
                       </p>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-gray-400 italic">No projects added yet.</p>
@@ -348,13 +368,17 @@ export default function TechTemplate({ resume }: Props) {
             {personalInfo.email && (
               <div>
                 <span className="font-bold text-gray-400 mr-1">EMAIL:</span>
-                <span className="font-medium text-gray-800">{personalInfo.email}</span>
+                <a href={`mailto:${personalInfo.email}`} className="font-medium text-gray-800 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  {personalInfo.email}
+                </a>
               </div>
             )}
             {personalInfo.phone && (
               <div>
                 <span className="font-bold text-gray-400 mr-1">PHONE:</span>
-                <span className="font-medium text-gray-800">{personalInfo.phone}</span>
+                <a href={`tel:${personalInfo.phone}`} className="font-medium text-gray-800 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  {personalInfo.phone}
+                </a>
               </div>
             )}
           </div>
@@ -370,7 +394,7 @@ export default function TechTemplate({ resume }: Props) {
             {personalInfo.linkedin && (
               <div>
                 <span className="font-bold text-gray-400 mr-1">IN:</span>
-                <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <a href={formatUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
                   LinkedIn
                 </a>
               </div>
@@ -378,7 +402,7 @@ export default function TechTemplate({ resume }: Props) {
             {personalInfo.github && (
               <div>
                 <span className="font-bold text-gray-400 mr-1">GH:</span>
-                <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <a href={formatUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
                   GitHub
                 </a>
               </div>
@@ -386,7 +410,7 @@ export default function TechTemplate({ resume }: Props) {
             {personalInfo.portfolio && (
               <div>
                 <span className="font-bold text-gray-400 mr-1">WEB:</span>
-                <a href={personalInfo.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <a href={formatUrl(personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
                   Portfolio
                 </a>
               </div>

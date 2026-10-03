@@ -141,18 +141,37 @@ export default function ExecutiveTemplate({ resume }: Props) {
             </h2>
             {resume.projects?.length > 0 ? (
               <div className="space-y-4">
-                {resume.projects.map((project, index) => (
+                {resume.projects.map((project, index) => {
+                  const githubUrl = project.github || (project as any).githubUrl;
+                  const demoUrl =
+                    project.liveDemo ||
+                    (project as any).liveUrl ||
+                    (project as any).demo ||
+                    (project as any).url;
+                  return (
                   <div key={index} className="break-inside-avoid">
                     <div className="flex justify-between items-baseline">
                       <h3 className="font-semibold text-gray-900 text-sm">{project.title}</h3>
                       <div className="flex gap-3 text-xs">
-                        {project.github && (
-                          <a href={formatUrl(project.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-[11px]">
+                        {githubUrl && (
+                          <a
+                            href={formatUrl(githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline text-[11px] cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             GitHub
                           </a>
                         )}
-                        {project.liveDemo && (
-                          <a href={formatUrl(project.liveDemo)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-[11px]">
+                        {demoUrl && (
+                          <a
+                            href={formatUrl(demoUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline text-[11px] cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Demo
                           </a>
                         )}
@@ -169,7 +188,8 @@ export default function ExecutiveTemplate({ resume }: Props) {
                       </p>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-gray-400 italic">No projects added yet.</p>
@@ -340,13 +360,17 @@ export default function ExecutiveTemplate({ resume }: Props) {
           {personalInfo.email && (
             <div>
               <div className="font-semibold text-gray-500 uppercase text-[9px]">Email</div>
-              <div className="truncate">{personalInfo.email}</div>
+              <a href={`mailto:${personalInfo.email}`} className="truncate block hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                {personalInfo.email}
+              </a>
             </div>
           )}
           {personalInfo.phone && (
             <div>
               <div className="font-semibold text-gray-500 uppercase text-[9px]">Phone</div>
-              <div>{personalInfo.phone}</div>
+              <a href={`tel:${personalInfo.phone}`} className="hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                {personalInfo.phone}
+              </a>
             </div>
           )}
           {personalInfo.address && (
@@ -358,7 +382,7 @@ export default function ExecutiveTemplate({ resume }: Props) {
           {personalInfo.linkedin && (
             <div>
               <div className="font-semibold text-gray-500 uppercase text-[9px]">LinkedIn</div>
-              <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+              <a href={formatUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block cursor-pointer" onClick={(e) => e.stopPropagation()}>
                 {personalInfo.linkedin.replace(/https?:\/\/(www\.)?/, "")}
               </a>
             </div>
@@ -366,7 +390,7 @@ export default function ExecutiveTemplate({ resume }: Props) {
           {personalInfo.github && (
             <div>
               <div className="font-semibold text-gray-500 uppercase text-[9px]">GitHub</div>
-              <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+              <a href={formatUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block cursor-pointer" onClick={(e) => e.stopPropagation()}>
                 {personalInfo.github.replace(/https?:\/\/(www\.)?/, "")}
               </a>
             </div>
@@ -374,7 +398,7 @@ export default function ExecutiveTemplate({ resume }: Props) {
           {personalInfo.portfolio && (
             <div>
               <div className="font-semibold text-gray-500 uppercase text-[9px]">Portfolio</div>
-              <a href={personalInfo.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+              <a href={formatUrl(personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block cursor-pointer" onClick={(e) => e.stopPropagation()}>
                 {personalInfo.portfolio.replace(/https?:\/\/(www\.)?/, "")}
               </a>
             </div>

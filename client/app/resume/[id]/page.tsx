@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Undo, Redo, Upload, Download, RefreshCw, ArrowUp, Sparkles, X, FileText, Share2, Printer } from "lucide-react";
 import { useUndoRedo } from "@/utils/useUndoRedo";
+import { formatUrl } from "@/utils/formatUrl";
 
 import { getResumeById, updateResume } from "@/services/resumeService";
 import { parsePdfResume } from "@/services/aiService";
@@ -263,6 +264,14 @@ export default function ResumeBuilder() {
         return "#000000";
       };
 
+      let capturedLinks: Array<{
+        url: string;
+        xRatio: number;
+        yRatio: number;
+        wRatio: number;
+        hRatio: number;
+      }> = [];
+
       // Render high resolution canvas (2x scale for sharp text)
       const canvas = await html2canvas(el, {
         scale: 2,
@@ -286,7 +295,6 @@ export default function ResumeBuilder() {
             }
 
             // 3. Reset letter-spacing, text-rendering, and word-spacing
-            // html2canvas severely miscalculates glyph advances with tracking-tight or negative letter-spacing
             const fontResetStyle = clonedDoc.createElement("style");
             fontResetStyle.textContent = `
               * {
@@ -307,9 +315,10 @@ export default function ResumeBuilder() {
             `;
             clonedDoc.head.appendChild(fontResetStyle);
 
-            // 4. CRITICAL FIX: Reset CSS zoom and transforms from target card and all children
-            // CSS zoom breaks character bounding rects in html2canvas, causing squashed/overlapping text
-            const targetCard = clonedDoc.getElementById("resume-card");
+            // 4. CRITICAL: Reset CSS zoom and transforms from target card and all children
+            const targetCard =
+              (clonedDoc.getElementById("print-area")?.querySelector("#resume-card") as HTMLElement) ||
+              clonedDoc.getElementById("resume-card");
             if (targetCard) {
               (targetCard.style as any).zoom = "1";
               targetCard.style.transform = "none";
@@ -318,7 +327,9 @@ export default function ResumeBuilder() {
               targetCard.style.overflow = "visible";
             }
 
-            const allClonedNodes = clonedDoc.querySelectorAll<HTMLElement>("#resume-card, #resume-card *");
+            const allClonedNodes = targetCard
+              ? targetCard.querySelectorAll<HTMLElement>("*")
+              : clonedDoc.querySelectorAll<HTMLElement>("#resume-card, #resume-card *");
             allClonedNodes.forEach((node) => {
               if ((node.style as any).zoom) {
                 (node.style as any).zoom = "1";
@@ -356,7 +367,7 @@ export default function ResumeBuilder() {
             });
 
             // 6. SMART PAGE BREAK PROTECTION for multi-page mode
-            const container = clonedDoc.getElementById("resume-card");
+            const container = targetCard || clonedDoc.getElementById("resume-card");
             if (container && !resume.settings?.fitToOnePage) {
               const paperSize = resume.settings?.paperSize || "a4";
               const pageHeightPx = paperSize === "letter" ? 1056 : 1123;
@@ -372,7 +383,6 @@ export default function ResumeBuilder() {
                 const nodeTop = rect.top - containerRect.top;
                 const nodeBottom = nodeTop + rect.height;
 
-                // If element starts before page cutoff but extends beyond it, insert clean white spacer to push to next page
                 if (nodeTop < currentCutoff && nodeBottom > currentCutoff - 10) {
                   const spacerHeight = Math.max(0, Math.ceil(currentCutoff - nodeTop));
                   if (spacerHeight > 0 && node.parentNode) {
@@ -387,6 +397,54 @@ export default function ResumeBuilder() {
                     node.parentNode.insertBefore(spacer, node);
                     currentCutoff += pageHeightPx + spacerHeight;
                   }
+                }
+              });
+            }
+
+            // 7. PRECISE HYPERLINK EXTRACTION DIRECTLY FROM RENDERED CLONED DOM
+            // This guarantees 100% pixel-perfect coordinates matching the exact canvas output
+            if (container) {
+              const cardRect = container.getBoundingClientRect();
+              const anchorNodes = container.querySelectorAll<HTMLAnchorElement>("a[href]");
+              capturedLinks = [];
+
+              anchorNodes.forEach((a) => {
+                const rawHref = a.getAttribute("href") || a.href;
+                if (!rawHref || rawHref === "#" || rawHref.startsWith("javascript:")) return;
+
+                const url = formatUrl(rawHref);
+                if (!url) return;
+
+                const aRect = a.getBoundingClientRect();
+                let relLeft = aRect.left - cardRect.left;
+                let relTop = aRect.top - cardRect.top;
+                let relWidth = aRect.width;
+                let relHeight = aRect.height;
+
+                // Fallback using offsetTop/offsetLeft if bounding rect has zero dimensions
+                if (relWidth === 0 || relHeight === 0) {
+                  let curr: HTMLElement | null = a;
+                  let oTop = 0;
+                  let oLeft = 0;
+                  while (curr && curr !== container) {
+                    oTop += curr.offsetTop || 0;
+                    oLeft += curr.offsetLeft || 0;
+                    curr = curr.offsetParent as HTMLElement | null;
+                  }
+                  relLeft = oLeft;
+                  relTop = oTop;
+                  relWidth = a.offsetWidth || 35;
+                  relHeight = a.offsetHeight || 14;
+                }
+
+                if (cardRect.width > 0 && cardRect.height > 0 && relWidth > 0 && relHeight > 0) {
+                  capturedLinks.push({
+                    url,
+                    xRatio: relLeft / cardRect.width,
+                    yRatio: relTop / cardRect.height,
+                    wRatio: relWidth / cardRect.width,
+                    hRatio: relHeight / cardRect.height,
+                  });
                 }
               });
             }
@@ -417,9 +475,29 @@ export default function ResumeBuilder() {
         format: [pdfWidth, pdfHeight],
       });
 
+      const padX = 1.2; // mm padding for comfortable click targets
+      const padY = 0.8; // mm padding for comfortable click targets
+
       if (fitToOnePage || imgHeightInMm <= pdfHeight) {
         // Fit image onto 1 page
         pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+        // Add interactive PDF hyperlink annotations to page 1
+        pdf.setPage(1);
+        capturedLinks.forEach((link) => {
+          const x = link.xRatio * pdfWidth;
+          const y = link.yRatio * pdfHeight;
+          const w = link.wRatio * pdfWidth;
+          const h = link.hRatio * pdfHeight;
+
+          pdf.link(
+            Math.max(0, x - padX),
+            Math.max(0, y - padY),
+            w + padX * 2,
+            h + padY * 2,
+            { url: link.url }
+          );
+        });
       } else {
         // Page-by-Page Canvas Cropping Engine: Crops exact A4 pages to eliminate text slicing
         const pageCanvasHeight = Math.floor((canvas.width * pdfHeight) / pdfWidth);
@@ -458,62 +536,31 @@ export default function ResumeBuilder() {
             pdf.addImage(pageImgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
           }
         }
-      }
 
-      // Embed interactive PDF hyperlink annotations for all project & profile links
-      try {
-        const { formatUrl } = await import("@/utils/formatUrl");
-        const containerRect = el.getBoundingClientRect();
-        const totalPdfHeightMm = (canvas.height * pdfWidth) / canvas.width;
-        const links = el.querySelectorAll<HTMLAnchorElement>("a[href]");
+        // Add interactive PDF hyperlink annotations to each corresponding page
+        capturedLinks.forEach((link) => {
+          const linkCanvasY = link.yRatio * canvas.height;
+          const linkCanvasH = link.hRatio * canvas.height;
+          const pageIndex = Math.floor(linkCanvasY / pageCanvasHeight);
+          const targetPage = pageIndex + 1;
 
-        links.forEach((a) => {
-          const rawHref = a.getAttribute("href") || a.href;
-          if (!rawHref || rawHref === "#" || rawHref.startsWith("javascript:")) return;
+          if (targetPage <= totalPages) {
+            const pageCanvasY = linkCanvasY - pageIndex * pageCanvasHeight;
+            const x = link.xRatio * pdfWidth;
+            const y = (pageCanvasY / pageCanvasHeight) * pdfHeight;
+            const w = link.wRatio * pdfWidth;
+            const h = (linkCanvasH / pageCanvasHeight) * pdfHeight;
 
-          const url = formatUrl(rawHref);
-          if (!url) return;
-
-          const rect = a.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) return;
-
-          // Scale-invariant fractional positions relative to container
-          const relX = (rect.left - containerRect.left) / containerRect.width;
-          const relY = (rect.top - containerRect.top) / containerRect.height;
-          const relW = rect.width / containerRect.width;
-          const relH = rect.height / containerRect.height;
-
-          const padX = 1.0; // mm
-          const padY = 0.5; // mm
-
-          if (fitToOnePage || totalPdfHeightMm <= pdfHeight) {
-            const x = relX * pdfWidth;
-            const y = relY * pdfHeight;
-            const w = relW * pdfWidth;
-            const h = relH * pdfHeight;
-
-            pdf.setPage(1);
-            pdf.link(Math.max(0, x - padX), Math.max(0, y - padY), w + padX * 2, h + padY * 2, { url });
-          } else {
-            const totalLinkY = relY * totalPdfHeightMm;
-            const pageIndex = Math.floor(totalLinkY / pdfHeight);
-            const pageY = totalLinkY - pageIndex * pdfHeight;
-            const targetPage = pageIndex + 1;
-            const totalPagesCount = (pdf as any).internal?.getNumberOfPages
-              ? (pdf as any).internal.getNumberOfPages()
-              : 1;
-
-            if (targetPage <= totalPagesCount) {
-              const x = relX * pdfWidth;
-              const w = relW * pdfWidth;
-              const h = relH * totalPdfHeightMm;
-              pdf.setPage(targetPage);
-              pdf.link(Math.max(0, x - padX), Math.max(0, pageY - padY), w + padX * 2, h + padY * 2, { url });
-            }
+            pdf.setPage(targetPage);
+            pdf.link(
+              Math.max(0, x - padX),
+              Math.max(0, y - padY),
+              w + padX * 2,
+              h + padY * 2,
+              { url: link.url }
+            );
           }
         });
-      } catch (linkErr) {
-        console.error("Error embedding links into PDF:", linkErr);
       }
 
       pdf.save(`${resume.title || "Resume"}.pdf`);

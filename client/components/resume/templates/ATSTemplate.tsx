@@ -76,17 +76,35 @@ export default function ATSTemplate({ resume }: Props) {
       )}
 
       <div
-        className={`mt-2 text-[12px] leading-6 ${theme.secondary}`}
+        className={`mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] ${theme.secondary}`}
       >
         {[
-          personalInfo.phone,
-          personalInfo.email,
-          personalInfo.linkedin,
-          personalInfo.github,
-          personalInfo.portfolio,
+          personalInfo.phone ? { val: personalInfo.phone, href: `tel:${personalInfo.phone}` } : null,
+          personalInfo.email ? { val: personalInfo.email, href: `mailto:${personalInfo.email}` } : null,
+          personalInfo.address ? { val: personalInfo.address } : null,
+          personalInfo.linkedin ? { val: personalInfo.linkedin, href: formatUrl(personalInfo.linkedin) } : null,
+          personalInfo.github ? { val: personalInfo.github, href: formatUrl(personalInfo.github) } : null,
+          personalInfo.portfolio ? { val: personalInfo.portfolio, href: formatUrl(personalInfo.portfolio) } : null,
         ]
           .filter(Boolean)
-          .join(" • ")}
+          .map((item: any, idx, arr) => (
+            <span key={idx} className="flex items-center gap-x-2.5">
+              {item.href ? (
+                <a
+                  href={item.href}
+                  target={item.href.startsWith("http") ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="hover:underline cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {item.val}
+                </a>
+              ) : (
+                <span>{item.val}</span>
+              )}
+              {idx < arr.length - 1 && <span className="select-none">•</span>}
+            </span>
+          ))}
       </div>
     </div>
 
@@ -187,28 +205,37 @@ export default function ATSTemplate({ resume }: Props) {
                     {title}
                   </h2>
                   <div className="mt-3 space-y-5">
-                    {projects.map((project, index) => (
+                    {projects.map((project, index) => {
+                      const githubUrl = project.github || (project as any).githubUrl;
+                      const demoUrl =
+                        project.liveDemo ||
+                        (project as any).liveUrl ||
+                        (project as any).demo ||
+                        (project as any).url;
+                      return (
                       <div key={index} className="break-inside-avoid project-item">
                         <div className="flex items-start justify-between">
                           <h3 className="font-bold">{project.title || "Project Title"}</h3>
                            <div className="text-[12px] font-semibold space-x-2">
-                            {project.github && (
+                            {githubUrl && (
                               <a
-                                href={formatUrl(project.github)}
+                                href={formatUrl(githubUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:underline text-blue-900"
+                                className="hover:underline text-blue-900 cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 GitHub
                               </a>
                             )}
-                            {project.github && project.liveDemo && <span>•</span>}
-                            {project.liveDemo && (
+                            {githubUrl && demoUrl && <span>•</span>}
+                            {demoUrl && (
                               <a
-                                href={formatUrl(project.liveDemo)}
+                                href={formatUrl(demoUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:underline text-blue-900"
+                                className="hover:underline text-blue-900 cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 Demo
                               </a>
@@ -222,7 +249,8 @@ export default function ATSTemplate({ resume }: Props) {
                         )}
                         {project.description && <div className="mt-2 whitespace-pre-line">{project.description}</div>}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
               );

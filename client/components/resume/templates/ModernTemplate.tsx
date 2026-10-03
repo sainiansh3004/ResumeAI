@@ -241,28 +241,41 @@ export default function ModernTemplate({ resume }: Props) {
                           {project.technologies.join(" • ")}
                         </p>
                       )}
-                      <div className="mt-2 flex gap-5 text-sm">
-                        {project.github && (
-                          <a
-                            href={formatUrl(project.github)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`${theme.secondary} underline`}
-                          >
-                            GitHub
-                          </a>
-                        )}
-                        {project.liveDemo && (
-                          <a
-                            href={formatUrl(project.liveDemo)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`${theme.secondary} underline`}
-                          >
-                            Live Demo
-                          </a>
-                        )}
-                      </div>
+                      {(() => {
+                        const githubUrl = project.github || (project as any).githubUrl;
+                        const demoUrl =
+                          project.liveDemo ||
+                          (project as any).liveUrl ||
+                          (project as any).demo ||
+                          (project as any).url;
+                        if (!githubUrl && !demoUrl) return null;
+                        return (
+                          <div className="mt-2 flex gap-5 text-sm">
+                            {githubUrl && (
+                              <a
+                                href={formatUrl(githubUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`${theme.secondary} underline cursor-pointer`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                GitHub
+                              </a>
+                            )}
+                            {demoUrl && (
+                              <a
+                                href={formatUrl(demoUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`${theme.secondary} underline cursor-pointer`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Live Demo
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {project.description && (
                         <p className="mt-3 whitespace-pre-line text-gray-700">{project.description}</p>
                       )}

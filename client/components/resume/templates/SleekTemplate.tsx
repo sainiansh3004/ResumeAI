@@ -133,18 +133,37 @@ export default function SleekTemplate({ resume }: Props) {
             </h2>
             <div className="col-span-3 space-y-4">
               {resume.projects?.length > 0 ? (
-                resume.projects.map((project, index) => (
+                resume.projects.map((project, index) => {
+                  const githubUrl = project.github || (project as any).githubUrl;
+                  const demoUrl =
+                    project.liveDemo ||
+                    (project as any).liveUrl ||
+                    (project as any).demo ||
+                    (project as any).url;
+                  return (
                   <div key={index} className="break-inside-avoid text-xs">
                     <div className="flex justify-between items-baseline font-bold text-gray-900">
                       <span>{project.title}</span>
                       <div className="flex gap-3 text-[10px] font-medium">
-                        {project.github && (
-                          <a href={formatUrl(project.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {githubUrl && (
+                          <a
+                            href={formatUrl(githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Code
                           </a>
                         )}
-                        {project.liveDemo && (
-                          <a href={formatUrl(project.liveDemo)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {demoUrl && (
+                          <a
+                            href={formatUrl(demoUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Live
                           </a>
                         )}
@@ -161,7 +180,8 @@ export default function SleekTemplate({ resume }: Props) {
                       </p>
                     )}
                   </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-xs text-gray-400 italic">No projects added yet.</p>
               )}
@@ -342,21 +362,29 @@ export default function SleekTemplate({ resume }: Props) {
       <div className="grid grid-cols-4 gap-4 text-[10px] tracking-wide text-gray-500 font-bold uppercase border-b pb-4 mb-2">
         <span className="text-right">Contact</span>
         <div className="col-span-3 flex flex-wrap gap-x-5 gap-y-1 font-medium text-gray-700 normal-case text-xs">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
-          {personalInfo.phone && <span>{personalInfo.phone}</span>}
+          {personalInfo.email && (
+            <a href={`mailto:${personalInfo.email}`} className="hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+              {personalInfo.email}
+            </a>
+          )}
+          {personalInfo.phone && (
+            <a href={`tel:${personalInfo.phone}`} className="hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+              {personalInfo.phone}
+            </a>
+          )}
           {personalInfo.address && <span>{personalInfo.address}</span>}
           {personalInfo.linkedin && (
-            <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            <a href={formatUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
               LinkedIn
             </a>
           )}
           {personalInfo.github && (
-            <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            <a href={formatUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
               GitHub
             </a>
           )}
           {personalInfo.portfolio && (
-            <a href={personalInfo.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            <a href={formatUrl(personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
               Portfolio
             </a>
           )}

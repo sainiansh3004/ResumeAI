@@ -61,7 +61,7 @@ export default function ResumePreview({
     lineHeight: fit ? "1.25" : LINE_HEIGHT_MAP[settings.lineHeight] || "1.5",
   };
 
-  const containerPadding = fit ? "20px" : MARGIN_MAP[settings.margin] || "40px";
+  const containerPadding = fit ? "36px 40px" : MARGIN_MAP[settings.margin] || "40px";
 
   return (
     <>

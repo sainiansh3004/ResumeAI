@@ -73,7 +73,7 @@ export default function A4Container({
         maxHeight: fitToOnePage ? `${dimensions.height}px` : "none",
         height: fitToOnePage ? `${dimensions.height}px` : "auto",
         overflow: fitToOnePage ? "hidden" : "visible",
-        padding: padding || "24px",
+        padding: padding || "36px 40px",
       }}
     >
       <div

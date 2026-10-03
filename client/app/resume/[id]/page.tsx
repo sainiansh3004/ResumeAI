@@ -477,26 +477,38 @@ export default function ResumeBuilder() {
           const rect = a.getBoundingClientRect();
           if (rect.width === 0 || rect.height === 0) return;
 
-          // X, Y, W, H relative to container in mm
-          const x = ((rect.left - containerRect.left) / containerRect.width) * pdfWidth;
-          const y = ((rect.top - containerRect.top) / containerRect.height) * totalPdfHeightMm;
-          const w = (rect.width / containerRect.width) * pdfWidth;
-          const h = (rect.height / containerRect.height) * totalPdfHeightMm;
+          // Scale-invariant fractional positions relative to container
+          const relX = (rect.left - containerRect.left) / containerRect.width;
+          const relY = (rect.top - containerRect.top) / containerRect.height;
+          const relW = rect.width / containerRect.width;
+          const relH = rect.height / containerRect.height;
+
+          const padX = 1.0; // mm
+          const padY = 0.5; // mm
 
           if (fitToOnePage || totalPdfHeightMm <= pdfHeight) {
+            const x = relX * pdfWidth;
+            const y = relY * pdfHeight;
+            const w = relW * pdfWidth;
+            const h = relH * pdfHeight;
+
             pdf.setPage(1);
-            pdf.link(x, y, w, h, { url });
+            pdf.link(Math.max(0, x - padX), Math.max(0, y - padY), w + padX * 2, h + padY * 2, { url });
           } else {
-            const pageIndex = Math.floor(y / pdfHeight);
-            const pageY = y % pdfHeight;
+            const totalLinkY = relY * totalPdfHeightMm;
+            const pageIndex = Math.floor(totalLinkY / pdfHeight);
+            const pageY = totalLinkY - pageIndex * pdfHeight;
             const targetPage = pageIndex + 1;
             const totalPagesCount = (pdf as any).internal?.getNumberOfPages
               ? (pdf as any).internal.getNumberOfPages()
               : 1;
 
             if (targetPage <= totalPagesCount) {
+              const x = relX * pdfWidth;
+              const w = relW * pdfWidth;
+              const h = relH * totalPdfHeightMm;
               pdf.setPage(targetPage);
-              pdf.link(x, pageY, w, h, { url });
+              pdf.link(Math.max(0, x - padX), Math.max(0, pageY - padY), w + padX * 2, h + padY * 2, { url });
             }
           }
         });

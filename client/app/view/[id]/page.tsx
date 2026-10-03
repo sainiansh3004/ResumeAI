@@ -132,6 +132,42 @@ export default function PublicResumeViewPage() {
       });
 
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+      // Embed clickable PDF hyperlink annotations
+      try {
+        const { formatUrl } = await import("@/utils/formatUrl");
+        const containerRect = el.getBoundingClientRect();
+        const links = el.querySelectorAll<HTMLAnchorElement>("a[href]");
+
+        links.forEach((a) => {
+          const rawHref = a.getAttribute("href") || a.href;
+          if (!rawHref || rawHref === "#" || rawHref.startsWith("javascript:")) return;
+
+          const url = formatUrl(rawHref);
+          if (!url) return;
+
+          const rect = a.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return;
+
+          const relX = (rect.left - containerRect.left) / containerRect.width;
+          const relY = (rect.top - containerRect.top) / containerRect.height;
+          const relW = rect.width / containerRect.width;
+          const relH = rect.height / containerRect.height;
+
+          const padX = 1.0;
+          const padY = 0.5;
+
+          const x = relX * pdfWidth;
+          const y = relY * pdfHeight;
+          const w = relW * pdfWidth;
+          const h = relH * pdfHeight;
+
+          pdf.link(Math.max(0, x - padX), Math.max(0, y - padY), w + padX * 2, h + padY * 2, { url });
+        });
+      } catch (linkErr) {
+        console.error("Error embedding links into PDF:", linkErr);
+      }
+
       pdf.save(`${resume?.title || resume?.personalInfo?.fullName || "Resume"}.pdf`);
     } catch (err) {
       console.error("PDF download failed, falling back to print:", err);

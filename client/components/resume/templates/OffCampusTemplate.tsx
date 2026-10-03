@@ -63,46 +63,84 @@ export default function OffCampusTemplate({ resume }: Props) {
     sectionOrder,
   } = resume;
 
+  // Helper to render clean, hanging-indent bullet points
+  const renderBullets = (text?: string) => {
+    if (!text || !text.trim()) return null;
+    const lines = text
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) return null;
+
+    return (
+      <ul className="mt-1 space-y-1 text-xs text-gray-800">
+        {lines.map((line, idx) => {
+          const cleanLine = line.replace(/^[•\-\*\s]+/, "").trim();
+          if (!cleanLine) return null;
+          return (
+            <li key={idx} className="flex items-start gap-2">
+              <span className="text-gray-900 select-none font-bold leading-none mt-1 text-[8px]">•</span>
+              <span className="leading-relaxed flex-1 text-gray-800">{cleanLine}</span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   return (
     <div className="w-full bg-white text-gray-900 font-sans leading-normal">
       {/* ================= HEADER ================= */}
       <header
         id="preview-section-personalInfo"
-        className="border-b-2 pb-4 mb-4 border-gray-900 flex items-center justify-between gap-4"
+        className="border-b border-gray-900 pb-3 mb-3 flex items-center justify-between gap-4"
       >
         {personalInfo.photo && (
           <img
             src={personalInfo.photo}
             alt={personalInfo.fullName || "Profile Photo"}
-            className="h-20 w-20 rounded-full object-cover border-2 border-gray-300 shadow-sm flex-shrink-0"
+            className="h-18 w-18 rounded-full object-cover border-2 border-gray-300 shadow-sm flex-shrink-0"
           />
         )}
 
         <div className="flex-1 text-center">
-          <h1 className={`text-3xl font-extrabold uppercase tracking-wide ${theme.primary}`}>
+          <h1 className={`text-2xl font-black uppercase tracking-wider ${theme.primary}`}>
             {personalInfo.fullName || "Your Name"}
           </h1>
 
           {personalInfo.headline && (
-            <p className="mt-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">
+            <p className="mt-1 text-xs font-semibold text-gray-800 uppercase tracking-wide">
               {personalInfo.headline}
             </p>
           )}
 
-          <div className="mt-2.5 flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-xs font-medium text-gray-800">
+          <div className="mt-2 flex flex-wrap justify-center items-center gap-x-2.5 gap-y-1 text-xs font-medium text-gray-700">
             {[
-              personalInfo.phone,
-              personalInfo.email,
-              personalInfo.address,
-              personalInfo.linkedin,
-              personalInfo.github,
-              personalInfo.portfolio,
+              personalInfo.phone ? { val: personalInfo.phone, href: `tel:${personalInfo.phone}` } : null,
+              personalInfo.email ? { val: personalInfo.email, href: `mailto:${personalInfo.email}` } : null,
+              personalInfo.address ? { val: personalInfo.address } : null,
+              personalInfo.linkedin ? { val: personalInfo.linkedin, href: formatUrl(personalInfo.linkedin) } : null,
+              personalInfo.github ? { val: personalInfo.github, href: formatUrl(personalInfo.github) } : null,
+              personalInfo.portfolio ? { val: personalInfo.portfolio, href: formatUrl(personalInfo.portfolio) } : null,
             ]
               .filter(Boolean)
-              .map((item, idx, arr) => (
-                <span key={idx} className="flex items-center gap-x-3">
-                  <span>{item}</span>
-                  {idx < arr.length - 1 && <span className="text-gray-400 font-bold">|</span>}
+              .map((item: any, idx, arr) => (
+                <span key={idx} className="flex items-center gap-x-2.5">
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      target={item.href.startsWith("http") ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="text-gray-700 hover:text-blue-700 hover:underline cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {item.val}
+                    </a>
+                  ) : (
+                    <span>{item.val}</span>
+                  )}
+                  {idx < arr.length - 1 && <span className="text-gray-400 font-bold select-none">|</span>}
                 </span>
               ))}
           </div>
@@ -134,11 +172,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "summary":
               if (!personalInfo.summary?.trim()) return null;
               return (
-                <section id="preview-section-summary" key="summary" className="mb-4 break-inside-avoid">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-summary" key="summary" className="mb-3.5 break-inside-avoid">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-800">
+                  <p className="mt-1 text-xs leading-relaxed text-gray-800">
                     {personalInfo.summary}
                   </p>
                 </section>
@@ -147,11 +185,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "skills":
               if (!skills || skills.length === 0) return null;
               return (
-                <section id="preview-section-skills" key="skills" className="mb-4 break-inside-avoid">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-skills" key="skills" className="mb-3.5 break-inside-avoid">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-1.5 text-xs text-gray-900 leading-relaxed font-medium">
+                  <div className="mt-1 text-xs text-gray-900 leading-relaxed font-medium">
                     <span className="font-bold text-gray-950">Languages & Tools: </span>
                     {skills.join(" • ")}
                   </div>
@@ -161,11 +199,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "experience":
               if (!experience || experience.length === 0) return null;
               return (
-                <section id="preview-section-experience" key="experience" className="mb-4">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-experience" key="experience" className="mb-3.5">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-2 space-y-3">
+                  <div className="mt-1.5 space-y-2.5">
                     {experience.map((exp, index) => (
                       <div key={index} className="break-inside-avoid">
                         <div className="flex justify-between items-baseline text-xs">
@@ -180,11 +218,7 @@ export default function OffCampusTemplate({ resume }: Props) {
                             {exp.endDate}
                           </span>
                         </div>
-                        {exp.description && (
-                          <div className="mt-1 text-xs text-gray-800 leading-relaxed whitespace-pre-line pl-3 border-l-2 border-gray-200">
-                            {exp.description}
-                          </div>
-                        )}
+                        {renderBullets(exp.description)}
                       </div>
                     ))}
                   </div>
@@ -194,33 +228,37 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "projects":
               if (!projects || projects.length === 0) return null;
               return (
-                <section id="preview-section-projects" key="projects" className="mb-4">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-projects" key="projects" className="mb-3.5">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-2 space-y-3">
+                  <div className="mt-1.5 space-y-2.5">
                     {projects.map((project, index) => (
                       <div key={index} className="break-inside-avoid">
                         <div className="flex justify-between items-baseline text-xs">
                           <span className="font-bold text-gray-950">{project.title || "Project Title"}</span>
-                          <div className="text-[11px] text-blue-800 font-semibold space-x-2">
+                          <div className="text-[11px] font-semibold flex items-center gap-1.5">
                             {project.github && (
                               <a
                                 href={formatUrl(project.github)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:underline text-blue-800"
+                                className="text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 GitHub
                               </a>
                             )}
-                            {project.github && project.liveDemo && <span>•</span>}
+                            {project.github && project.liveDemo && (
+                              <span className="text-gray-400 font-normal select-none">•</span>
+                            )}
                             {project.liveDemo && (
                               <a
                                 href={formatUrl(project.liveDemo)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:underline text-blue-800"
+                                className="text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 Demo
                               </a>
@@ -232,11 +270,7 @@ export default function OffCampusTemplate({ resume }: Props) {
                             Technologies: {project.technologies.join(", ")}
                           </p>
                         )}
-                        {project.description && (
-                          <div className="mt-1 text-xs text-gray-800 leading-relaxed whitespace-pre-line pl-3 border-l-2 border-gray-200">
-                            {project.description}
-                          </div>
-                        )}
+                        {renderBullets(project.description)}
                       </div>
                     ))}
                   </div>
@@ -246,11 +280,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "education":
               if (!education || education.length === 0) return null;
               return (
-                <section id="preview-section-education" key="education" className="mb-4">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-education" key="education" className="mb-3.5">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-1.5 space-y-1.5">
                     {education.map((edu, index) => (
                       <div key={index} className="break-inside-avoid flex justify-between items-baseline text-xs">
                         <div>
@@ -276,18 +310,18 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "certifications":
               if (!certifications || certifications.length === 0) return null;
               return (
-                <section id="preview-section-certifications" key="certifications" className="mb-4 break-inside-avoid">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-certifications" key="certifications" className="mb-3.5 break-inside-avoid">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-2 space-y-1.5">
+                  <div className="mt-1.5 space-y-1.5">
                     {certifications.map((cert, index) => (
-                      <div key={index} className="flex justify-between text-xs">
+                      <div key={index} className="flex justify-between text-xs items-baseline">
                         <div>
                           <span className="font-bold text-gray-950">{cert.name}</span>
-                          {cert.organization && <span className="text-gray-700"> ({cert.organization})</span>}
+                          {cert.organization && <span className="text-gray-700 italic"> ({cert.organization})</span>}
                         </div>
-                        {cert.issueDate && <span className="text-gray-600 font-medium">{cert.issueDate}</span>}
+                        {cert.issueDate && <span className="text-gray-600 font-semibold">{cert.issueDate}</span>}
                       </div>
                     ))}
                   </div>
@@ -297,17 +331,24 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "achievements":
               if (!achievements || achievements.length === 0) return null;
               return (
-                <section id="preview-section-achievements" key="achievements" className="mb-4">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-achievements" key="achievements" className="mb-3.5">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <ul className="mt-1.5 list-disc list-inside text-xs text-gray-800 space-y-1">
-                    {achievements.map((achievement, index) => (
-                      <li key={index}>
-                        <span className="font-bold text-gray-950">{achievement.title}</span>
-                        {achievement.description && ` — ${achievement.description}`}
-                      </li>
-                    ))}
+                  <ul className="mt-1.5 space-y-1 text-xs text-gray-800">
+                    {achievements.map((achievement, index) => {
+                      const cleanTitle = (achievement.title || "").replace(/^[•\-\*\s]+/, "").trim();
+                      const cleanDesc = (achievement.description || "").replace(/^[•\-\*\s]+/, "").trim();
+                      return (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-gray-900 select-none font-bold leading-none mt-1 text-[8px]">•</span>
+                          <span className="leading-relaxed flex-1 text-gray-800">
+                            <span className="font-bold text-gray-950">{cleanTitle}</span>
+                            {cleanDesc && ` — ${cleanDesc}`}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </section>
               );
@@ -315,11 +356,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "languages":
               if (!languages || languages.length === 0) return null;
               return (
-                <section id="preview-section-languages" key="languages" className="mb-4">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-languages" key="languages" className="mb-3.5">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <p className="mt-1.5 text-xs text-gray-800">
+                  <p className="mt-1 text-xs text-gray-800">
                     {languages
                       .map((lang) => `${lang.name}${lang.proficiency ? ` (${lang.proficiency})` : ""}`)
                       .join(" • ")}
@@ -330,11 +371,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "interests":
               if (!interests || interests.length === 0) return null;
               return (
-                <section id="preview-section-interests" key="interests" className="mb-4">
-                  <h2 className={`border-b-2 pb-0.5 text-xs font-bold uppercase tracking-wider ${theme.border} ${theme.primary}`}>
+                <section id="preview-section-interests" key="interests" className="mb-3.5">
+                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <p className="mt-1.5 text-xs text-gray-800">
+                  <p className="mt-1 text-xs text-gray-800">
                     {interests.map((interest) => interest.name).join(" • ")}
                   </p>
                 </section>

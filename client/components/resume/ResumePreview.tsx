@@ -53,7 +53,7 @@ export default function ResumePreview({
     showPageNumbers: true,
   };
 
-  const fit = settings.fitToOnePage === true;
+  const fit = settings.fitToOnePage !== false;
 
   const previewStyle: React.CSSProperties = {
     fontFamily: `"${settings.fontFamily}", ui-sans-serif, system-ui, sans-serif`,
@@ -61,7 +61,7 @@ export default function ResumePreview({
     lineHeight: fit ? "1.25" : LINE_HEIGHT_MAP[settings.lineHeight] || "1.5",
   };
 
-  const containerPadding = fit ? "36px 40px" : MARGIN_MAP[settings.margin] || "40px";
+  const containerPadding = fit ? "28px 36px" : MARGIN_MAP[settings.margin] || "40px";
 
   return (
     <>

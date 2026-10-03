@@ -207,7 +207,7 @@ export default function ResumeBuilder() {
     const calculatePages = () => {
       const el = document.getElementById("resume-card");
       if (el) {
-        const isSingle = resume.settings?.fitToOnePage === true;
+        const isSingle = resume.settings?.fitToOnePage !== false;
         if (isSingle) {
           setPdfPageCount(1);
         } else {
@@ -478,20 +478,25 @@ export default function ResumeBuilder() {
       const padX = 1.2; // mm padding for comfortable click targets
       const padY = 0.8; // mm padding for comfortable click targets
 
-      // Check if document naturally fits on a single page
-      const fitsNaturallyOnOnePage = imgHeightInMm <= pdfHeight;
+      const isSinglePage = resume.settings?.fitToOnePage !== false;
 
-      if (fitsNaturallyOnOnePage) {
-        // Fits cleanly on 1 page: render at true 1:1 natural aspect ratio!
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, imgHeightInMm);
+      if (isSinglePage) {
+        // Fits on EXACTLY 1 PAGE without vertical distortion!
+        // Scale uniformly so fonts and glyphs retain their true proportions and geometry
+        const scaleFactor = Math.min(1, pdfHeight / imgHeightInMm);
+        const fittedWidth = pdfWidth * scaleFactor;
+        const fittedHeight = imgHeightInMm * scaleFactor;
+        const offsetX = (pdfWidth - fittedWidth) / 2;
+
+        pdf.addImage(imgData, "JPEG", offsetX, 0, fittedWidth, fittedHeight);
 
         // Add interactive PDF hyperlink annotations to page 1
         pdf.setPage(1);
         capturedLinks.forEach((link) => {
-          const x = link.xRatio * pdfWidth;
-          const y = link.yRatio * imgHeightInMm;
-          const w = link.wRatio * pdfWidth;
-          const h = link.hRatio * imgHeightInMm;
+          const x = offsetX + link.xRatio * fittedWidth;
+          const y = link.yRatio * fittedHeight;
+          const w = link.wRatio * fittedWidth;
+          const h = link.hRatio * fittedHeight;
 
           pdf.link(
             Math.max(0, x - padX),
@@ -997,7 +1002,7 @@ const handleSettingsChange = (
 
         {/* Page Flow Mode */}
         <select
-          value={resume.settings?.fitToOnePage === true ? "single" : "multi"}
+          value={resume.settings?.fitToOnePage === false ? "multi" : "single"}
           onChange={(e) => {
             const isSingle = e.target.value === "single";
             handleSettingsChange({
@@ -1015,8 +1020,8 @@ const handleSettingsChange = (
           title="Page Flow Layout Mode"
           className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-700 shadow-xs transition hover:bg-gray-50 focus:border-blue-500 focus:outline-none cursor-pointer"
         >
+          <option value="single">📄 Single-Page Strict (1-Page)</option>
           <option value="multi">📑 Multi-Page Flow (2+ Pages)</option>
-          <option value="single">📄 Single-Page Strict (Auto-Fit)</option>
         </select>
 
         {/* Paper Format */}
@@ -1256,7 +1261,7 @@ const handleSettingsChange = (
             {/* Controls inside modal header */}
             <div className="flex items-center gap-3">
               <select
-                value={resume.settings?.fitToOnePage === true ? "single" : "multi"}
+                value={resume.settings?.fitToOnePage === false ? "multi" : "single"}
                 onChange={(e) => {
                   const isSingle = e.target.value === "single";
                   handleSettingsChange({
@@ -1273,8 +1278,8 @@ const handleSettingsChange = (
                 }}
                 className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-700 shadow-sm focus:outline-none cursor-pointer"
               >
+                <option value="single">📄 Single-Page Strict (1-Page)</option>
                 <option value="multi">📑 Multi-Page Flow (2+ Pages)</option>
-                <option value="single">📄 Single-Page Strict (Auto-Fit)</option>
               </select>
 
               <select

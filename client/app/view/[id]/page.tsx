@@ -278,17 +278,24 @@ export default function PublicResumeViewPage() {
       const padX = 1.2;
       const padY = 0.8;
 
-      const fitsNaturallyOnOnePage = imgHeightInMm <= pdfHeight;
+      const isSinglePage = resume?.settings?.fitToOnePage !== false;
 
-      if (fitsNaturallyOnOnePage) {
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, imgHeightInMm);
+      if (isSinglePage) {
+        // Fits on EXACTLY 1 PAGE without vertical distortion!
+        // Scale uniformly so fonts and glyphs retain their true proportions and geometry
+        const scaleFactor = Math.min(1, pdfHeight / imgHeightInMm);
+        const fittedWidth = pdfWidth * scaleFactor;
+        const fittedHeight = imgHeightInMm * scaleFactor;
+        const offsetX = (pdfWidth - fittedWidth) / 2;
+
+        pdf.addImage(imgData, "JPEG", offsetX, 0, fittedWidth, fittedHeight);
         pdf.setPage(1);
 
         capturedLinks.forEach((link) => {
-          const x = link.xRatio * pdfWidth;
-          const y = link.yRatio * imgHeightInMm;
-          const w = link.wRatio * pdfWidth;
-          const h = link.hRatio * imgHeightInMm;
+          const x = offsetX + link.xRatio * fittedWidth;
+          const y = link.yRatio * fittedHeight;
+          const w = link.wRatio * fittedWidth;
+          const h = link.hRatio * fittedHeight;
 
           pdf.link(
             Math.max(0, x - padX),

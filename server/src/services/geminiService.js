@@ -11,11 +11,12 @@ const groq = new OpenAI({
 });
 
 const MODELS = [
-  "llama-3.1-8b-instant",
-  "llama3-70b-8192",
-  "llama3-8b-8192",
-  "mixtral-8x7b-32768",
+  "qwen/qwen3.8-27b",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
   "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+  "allam-2-7b",
 ];
 
 // ==========================
@@ -52,48 +53,43 @@ const callGroq = async (prompt, options = {}) => {
 // Generate Summary
 // ==========================
 const generateSummary = async (resumeData) => {
-  const prompt = `
-You are an expert ATS Resume Writer.
+  const formattedData =
+    typeof resumeData === "string"
+      ? resumeData
+      : JSON.stringify(resumeData, null, 2);
 
-Generate a professional ATS-friendly resume summary.
+  const prompt = `You are a professional resume writer.
 
-Candidate Details
+Generate a strong, ATS-friendly professional summary using the data below.
 
-Name:
-${resumeData.personalInfo?.fullName || ""}
+----------------------------------------
 
-Headline:
-${resumeData.personalInfo?.headline || ""}
+DATA:
+${formattedData}
 
-Skills:
-${(resumeData.skills || []).join(", ")}
+----------------------------------------
 
-Education:
-${(resumeData.education || [])
-  .map(
-    (edu) =>
-      `${edu.degree || ""} ${edu.fieldOfStudy || ""} ${edu.college || ""}`
-  )
-  .join("\n")}
+RULES:
 
-Experience:
-${(resumeData.experience || [])
-  .map(
-    (exp) =>
-`${exp.position || ""}
-${exp.company || ""}
-${exp.description || ""}`
-  )
-  .join("\n\n")}
+- Write 3–4 lines only
+- Use strong action words
+- Highlight:
+  - Skills
+  - Technologies
+  - Experience
+  - Impact (metrics if available)
+- Make it concise and impactful
+- Do NOT add fake information
+- Do NOT repeat raw data
+- Make it sound like a real resume summary
 
-Requirements:
-- 4-5 lines
-- ATS Friendly
-- Professional
-- Return ONLY the summary text, no labels or headers.
-`;
+----------------------------------------
 
-  return callGroq(prompt);
+OUTPUT:
+
+Return ONLY the summary text (no JSON, no explanation)`;
+
+  return callGroq(prompt, { temperature: 0.3, max_tokens: 500 });
 };
 
 // ==========================
@@ -183,33 +179,89 @@ const parseResumeFromText = async (resumeText) => {
     .trim()
     .substring(0, 8000);
 
-  const prompt = `You are an expert resume parser. Extract ALL details from the resume text below into JSON.
+  const prompt = `You are an expert resume parser.
 
-Resume Text:
-${cleanedText}
+Extract all information from the given resume text and convert it into structured JSON.
 
-Return JSON matching this EXACT structure:
+Return ONLY valid JSON. Do NOT include explanations or extra text.
+
+----------------------------------------
+
+OUTPUT FORMAT (STRICT):
+
 {
-  "title": "Candidate Name Resume",
-  "personalInfo": { "fullName": "", "headline": "", "email": "", "phone": "", "address": "", "linkedin": "", "github": "", "portfolio": "", "summary": "" },
-  "education": [{ "college": "", "degree": "", "fieldOfStudy": "", "startYear": "", "endYear": "", "cgpa": "" }],
-  "experience": [{ "company": "", "position": "", "location": "", "employmentType": "", "startDate": "", "endDate": "", "currentlyWorking": false, "description": "" }],
-  "skills": ["skill1", "skill2"],
-  "projects": [{ "title": "", "description": "", "technologies": [], "github": "", "liveDemo": "" }],
-  "certifications": [{ "name": "", "organization": "", "issueDate": "" }],
-  "achievements": [{ "title": "", "description": "" }],
-  "languages": [{ "name": "", "proficiency": "" }],
-  "interests": [{ "name": "" }]
+  "personalInfo": {
+    "name": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "linkedin": "",
+    "github": "",
+    "website": "",
+    "summary": ""
+  },
+
+  "education": [
+    {
+      "institution": "",
+      "degree": "",
+      "field": "",
+      "startDate": "",
+      "endDate": "",
+      "location": "",
+      "description": ""
+    }
+  ],
+
+  "experience": [
+    {
+      "company": "",
+      "position": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "description": []
+    }
+  ],
+
+  "projects": [
+    {
+      "name": "",
+      "description": "",
+      "technologies": [],
+      "github": "",
+      "liveUrl": ""
+    }
+  ],
+
+  "skills": [],
+  "certifications": [],
+  "achievements": [],
+  "languages": [],
+  "interests": []
 }
 
-CRITICAL RULES:
-- Extract EVERY experience entry, project, skill, education, certification, and achievement from the text. Do NOT skip any.
-- "description" in experience and projects must contain the FULL text of all bullet points combined.
-- "skills" must be a flat array of ALL technical skills, tools, languages, and frameworks mentioned.
-- "headline" should be the job title or tagline shown below the name (e.g. "Software Engineer | Full Stack Developer").
-- Use "startYear"/"endYear" for education (e.g. "2022", "2026"), use "startDate"/"endDate" for experience.
-- If a field is missing, use empty string "" or empty array [].
-- Return ONLY valid JSON. No markdown, no explanation.`;
+----------------------------------------
+
+RULES:
+
+- Do NOT invent any data
+- Extract everything present in the resume
+- Keep bullet points as arrays in experience.description
+- Preserve numbers, percentages, and metrics
+- Internships → experience
+- Clean formatting (remove symbols/icons)
+- Normalize dates (e.g., June 2025 – July 2025)
+- Extract all technologies into skills/projects
+- If summary is missing → generate a short professional one
+
+Return valid JSON parsable with JSON.parse()
+
+----------------------------------------
+
+RESUME TEXT:
+
+${cleanedText}`;
 
   return callGroq(prompt, { temperature: 0.1, max_tokens: 4096, response_format: { type: "json_object" } });
 };

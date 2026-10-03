@@ -156,7 +156,7 @@ const sanitizeResumeData = (data) => {
     address: pi.address || pi.location || pi.city || "",
     linkedin: pi.linkedin || "",
     github: pi.github || "",
-    portfolio: pi.portfolio || pi.website || "",
+    portfolio: pi.portfolio || pi.website || pi.url || "",
     summary: pi.summary || pi.bio || pi.about || "",
   };
 
@@ -194,7 +194,13 @@ const sanitizeResumeData = (data) => {
   const formatDesc = (val) => {
     if (!val) return "";
     if (Array.isArray(val)) {
-      return val.map((b) => (typeof b === "string" ? b : JSON.stringify(b))).join("\n• ");
+      return val
+        .map((b) => {
+          const text = (typeof b === "string" ? b : JSON.stringify(b)).replace(/^[\s•\-\*]+/, "").trim();
+          return text ? `• ${text}` : "";
+        })
+        .filter(Boolean)
+        .join("\n");
     }
     return String(val);
   };
@@ -210,7 +216,7 @@ const sanitizeResumeData = (data) => {
         description: formatDesc(item.description || item.details || item.bullets || item.highlights),
         technologies: Array.isArray(techs) ? techs : [],
         github: item.github || item.link || "",
-        liveDemo: item.liveDemo || "",
+        liveDemo: item.liveDemo || item.liveUrl || item.demo || item.url || "",
       };
     });
   } else {
@@ -225,7 +231,7 @@ const sanitizeResumeData = (data) => {
       fieldOfStudy: item.fieldOfStudy || item.field || "",
       startYear: item.startYear || item.startDate || "",
       endYear: item.endYear || item.endDate || "",
-      cgpa: item.cgpa || item.gpa || "",
+      cgpa: item.cgpa || item.gpa || item.grade || "",
     }));
   } else {
     safe.education = [];
@@ -240,11 +246,16 @@ const sanitizeResumeData = (data) => {
       employmentType: item.employmentType || "",
       startDate: item.startDate || "",
       endDate: item.endDate || "",
-      currentlyWorking: item.currentlyWorking || item.current || false,
+      currentlyWorking: item.currentlyWorking || item.current || (typeof item.endDate === "string" && /present|current/i.test(item.endDate)) || false,
       description: formatDesc(item.description || item.details || item.bullets || item.responsibilities || item.highlights),
     }));
   } else {
     safe.experience = [];
+  }
+
+  // If headline is missing, deduce from first experience role
+  if (!safe.personalInfo.headline && safe.experience.length > 0 && safe.experience[0].position) {
+    safe.personalInfo.headline = safe.experience[0].position;
   }
 
   // certifications: must use organization, issueDate
@@ -252,7 +263,7 @@ const sanitizeResumeData = (data) => {
     safe.certifications = safe.certifications.map((item) => {
       if (typeof item === "string") return { name: item, organization: "", issueDate: "" };
       return {
-        name: item.name || "",
+        name: item.name || item.title || "",
         organization: item.organization || item.issuer || "",
         issueDate: item.issueDate || item.date || "",
       };
@@ -266,6 +277,11 @@ const sanitizeResumeData = (data) => {
     safe.skills = safe.skills.map((s) => (typeof s === "string" ? s : s.name || String(s)));
   } else {
     safe.skills = [];
+  }
+
+  // Default title
+  if (!safe.title || safe.title === "Resume" || safe.title === "Candidate Name Resume" || safe.title === "Untitled Resume") {
+    safe.title = safe.personalInfo?.fullName ? `${safe.personalInfo.fullName} Resume` : "My Resume";
   }
 
   return safe;

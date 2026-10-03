@@ -67,6 +67,21 @@ export default function PublicResumeViewPage() {
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
 
+      const toRgbColor = (colorStr: string): string => {
+        if (!colorStr || !colorStr.includes("oklch")) return colorStr;
+        try {
+          const cvs = document.createElement("canvas");
+          cvs.width = 1;
+          cvs.height = 1;
+          const ctx = cvs.getContext("2d");
+          if (ctx) {
+            ctx.fillStyle = colorStr;
+            return ctx.fillStyle;
+          }
+        } catch (e) {}
+        return "#000000";
+      };
+
       let capturedLinks: Array<{
         url: string;
         xRatio: number;
@@ -102,6 +117,15 @@ export default function PublicResumeViewPage() {
                 font-kerning: normal !important;
                 text-rendering: geometricPrecision !important;
               }
+              .pdf-page-break-spacer {
+                border: none !important;
+                margin: 0 !important;
+                background: #ffffff !important;
+              }
+              .pdf-page-break-spacer::after {
+                display: none !important;
+                content: "" !important;
+              }
             `;
             clonedDoc.head.appendChild(fontResetStyle);
 
@@ -112,20 +136,85 @@ export default function PublicResumeViewPage() {
               targetCard.style.maxHeight = "none";
               targetCard.style.height = "auto";
               targetCard.style.overflow = "visible";
+            }
 
-              const allClonedNodes = targetCard.querySelectorAll<HTMLElement>("*");
-              allClonedNodes.forEach((node) => {
-                if ((node.style as any).zoom) {
-                  (node.style as any).zoom = "1";
+            const allClonedNodes = targetCard
+              ? targetCard.querySelectorAll<HTMLElement>("*")
+              : clonedDoc.querySelectorAll<HTMLElement>("#resume-card, #resume-card *");
+            allClonedNodes.forEach((node) => {
+              if ((node.style as any).zoom) {
+                (node.style as any).zoom = "1";
+              }
+              if (node.style.transform && node.style.transform.includes("scale")) {
+                node.style.transform = "none";
+              }
+            });
+
+            const styleNodes = clonedDoc.querySelectorAll("style");
+            styleNodes.forEach((s) => {
+              if (s.textContent && s.textContent.includes("oklch")) {
+                s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, "#111827");
+              }
+            });
+
+            allClonedNodes.forEach((node) => {
+              try {
+                const style = window.getComputedStyle(node);
+                const color = style.color;
+                const bg = style.backgroundColor;
+                const border = style.borderColor;
+
+                if (color && color.includes("oklch")) {
+                  node.style.color = toRgbColor(color);
                 }
-                if (node.style.transform && node.style.transform.includes("scale")) {
-                  node.style.transform = "none";
+                if (bg && bg.includes("oklch")) {
+                  node.style.backgroundColor = toRgbColor(bg);
+                }
+                if (border && border.includes("oklch")) {
+                  node.style.borderColor = toRgbColor(border);
+                }
+              } catch (e) {}
+            });
+
+            // Smart page break protection
+            const container = targetCard || clonedDoc.getElementById("resume-card");
+            if (container && !resume?.settings?.fitToOnePage) {
+              const paperSize = resume?.settings?.paperSize || "a4";
+              const pageHeightPx = paperSize === "letter" ? 1056 : 1123;
+              const breakables = container.querySelectorAll<HTMLElement>(
+                ".break-inside-avoid, .experience-item, .project-item, .education-item, .certification-item, .achievement-item"
+              );
+
+              const containerRect = container.getBoundingClientRect();
+              let currentCutoff = pageHeightPx;
+
+              breakables.forEach((node) => {
+                const rect = node.getBoundingClientRect();
+                const nodeTop = rect.top - containerRect.top;
+                const nodeBottom = nodeTop + rect.height;
+
+                if (nodeTop < currentCutoff && nodeBottom > currentCutoff - 10) {
+                  const spacerHeight = Math.max(0, Math.ceil(currentCutoff - nodeTop));
+                  if (spacerHeight > 0 && node.parentNode) {
+                    const spacer = clonedDoc.createElement("div");
+                    spacer.className = "pdf-page-break-spacer";
+                    spacer.style.height = `${spacerHeight}px`;
+                    spacer.style.width = "100%";
+                    spacer.style.display = "block";
+                    spacer.style.clear = "both";
+                    spacer.style.backgroundColor = "#ffffff";
+                    spacer.style.border = "none";
+                    node.parentNode.insertBefore(spacer, node);
+                    currentCutoff += pageHeightPx + spacerHeight;
+                  }
                 }
               });
+            }
 
-              // Capture links directly from the rendered cloned card
-              const cardRect = targetCard.getBoundingClientRect();
-              const anchorNodes = targetCard.querySelectorAll<HTMLAnchorElement>("a[href]");
+            // Capture hyperlinks directly from rendered cloned card
+            if (container) {
+              const cardRect = container.getBoundingClientRect();
+              const anchorNodes = container.querySelectorAll<HTMLAnchorElement>("a[href]");
               capturedLinks = [];
 
               anchorNodes.forEach((a) => {
@@ -145,7 +234,7 @@ export default function PublicResumeViewPage() {
                   let curr: HTMLElement | null = a;
                   let oTop = 0;
                   let oLeft = 0;
-                  while (curr && curr !== targetCard) {
+                  while (curr && curr !== container) {
                     oTop += curr.offsetTop || 0;
                     oLeft += curr.offsetLeft || 0;
                     curr = curr.offsetParent as HTMLElement | null;
@@ -178,33 +267,99 @@ export default function PublicResumeViewPage() {
       let pdfWidth = paperSize === "letter" ? 215.9 : 210;
       let pdfHeight = paperSize === "letter" ? 279.4 : 297;
 
+      const imgHeightInMm = (canvas.height * pdfWidth) / canvas.width;
+
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: [pdfWidth, pdfHeight],
       });
 
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-
-      // Embed clickable PDF hyperlink annotations
       const padX = 1.2;
       const padY = 0.8;
-      pdf.setPage(1);
 
-      capturedLinks.forEach((link) => {
-        const x = link.xRatio * pdfWidth;
-        const y = link.yRatio * pdfHeight;
-        const w = link.wRatio * pdfWidth;
-        const h = link.hRatio * pdfHeight;
+      const fitsNaturallyOnOnePage = imgHeightInMm <= pdfHeight;
 
-        pdf.link(
-          Math.max(0, x - padX),
-          Math.max(0, y - padY),
-          w + padX * 2,
-          h + padY * 2,
-          { url: link.url }
-        );
-      });
+      if (fitsNaturallyOnOnePage) {
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, imgHeightInMm);
+        pdf.setPage(1);
+
+        capturedLinks.forEach((link) => {
+          const x = link.xRatio * pdfWidth;
+          const y = link.yRatio * imgHeightInMm;
+          const w = link.wRatio * pdfWidth;
+          const h = link.hRatio * imgHeightInMm;
+
+          pdf.link(
+            Math.max(0, x - padX),
+            Math.max(0, y - padY),
+            w + padX * 2,
+            h + padY * 2,
+            { url: link.url }
+          );
+        });
+      } else {
+        const pageCanvasHeight = Math.floor((canvas.width * pdfHeight) / pdfWidth);
+        const totalPages = Math.max(1, Math.ceil(canvas.height / pageCanvasHeight));
+
+        for (let i = 0; i < totalPages; i++) {
+          if (i > 0) {
+            pdf.addPage([pdfWidth, pdfHeight]);
+          }
+
+          const pageCanvas = document.createElement("canvas");
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = pageCanvasHeight;
+          const pageCtx = pageCanvas.getContext("2d");
+
+          if (pageCtx) {
+            pageCtx.fillStyle = "#ffffff";
+            pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvasHeight);
+
+            const srcY = i * pageCanvasHeight;
+            const srcH = Math.min(pageCanvasHeight, canvas.height - srcY);
+
+            pageCtx.drawImage(
+              canvas,
+              0,
+              srcY,
+              canvas.width,
+              srcH,
+              0,
+              0,
+              canvas.width,
+              srcH
+            );
+
+            const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.98);
+            pdf.addImage(pageImgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+          }
+        }
+
+        capturedLinks.forEach((link) => {
+          const linkCanvasY = link.yRatio * canvas.height;
+          const linkCanvasH = link.hRatio * canvas.height;
+          const pageIndex = Math.floor(linkCanvasY / pageCanvasHeight);
+          const targetPage = pageIndex + 1;
+
+          if (targetPage <= totalPages) {
+            const pageCanvasY = linkCanvasY - pageIndex * pageCanvasHeight;
+            const x = link.xRatio * pdfWidth;
+            const y = (pageCanvasY / pageCanvasHeight) * pdfHeight;
+            const w = link.wRatio * pdfWidth;
+            const h = (linkCanvasH / pageCanvasHeight) * pdfHeight;
+
+            pdf.setPage(targetPage);
+            pdf.link(
+              Math.max(0, x - padX),
+              Math.max(0, y - padY),
+              w + padX * 2,
+              h + padY * 2,
+              { url: link.url }
+            );
+          }
+        });
+      }
 
       pdf.save(`${resume?.title || resume?.personalInfo?.fullName || "Resume"}.pdf`);
     } catch (err) {

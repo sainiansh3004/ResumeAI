@@ -94,7 +94,7 @@ export default function OffCampusTemplate({ resume }: Props) {
       {/* ================= HEADER ================= */}
       <header
         id="preview-section-personalInfo"
-        className="border-b border-gray-900 pb-3 mb-3 flex items-center justify-between gap-4"
+        className="border-b border-gray-900 pb-3 mb-4 flex items-center justify-between gap-4"
       >
         {personalInfo.photo && (
           <img
@@ -172,11 +172,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "summary":
               if (!personalInfo.summary?.trim()) return null;
               return (
-                <section id="preview-section-summary" key="summary" className="mb-3.5 break-inside-avoid">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-summary" key="summary" className="mb-4.5 break-inside-avoid">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <p className="mt-1 text-xs leading-relaxed text-gray-800">
+                  <p className="mt-2.5 text-xs leading-relaxed text-gray-800">
                     {personalInfo.summary}
                   </p>
                 </section>
@@ -185,11 +185,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "skills":
               if (!skills || skills.length === 0) return null;
               return (
-                <section id="preview-section-skills" key="skills" className="mb-3.5 break-inside-avoid">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-skills" key="skills" className="mb-4.5 break-inside-avoid">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-1 text-xs text-gray-900 leading-relaxed font-medium">
+                  <div className="mt-2.5 text-xs text-gray-900 leading-relaxed font-medium">
                     <span className="font-bold text-gray-950">Languages & Tools: </span>
                     {skills.join(" • ")}
                   </div>
@@ -199,11 +199,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "experience":
               if (!experience || experience.length === 0) return null;
               return (
-                <section id="preview-section-experience" key="experience" className="mb-3.5">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-experience" key="experience" className="mb-4.5">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-1.5 space-y-2.5">
+                  <div className="mt-2.5 space-y-3">
                     {experience.map((exp, index) => (
                       <div key={index} className="break-inside-avoid">
                         <div className="flex justify-between items-baseline text-xs">
@@ -228,11 +228,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "projects":
               if (!projects || projects.length === 0) return null;
               return (
-                <section id="preview-section-projects" key="projects" className="mb-3.5">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-projects" key="projects" className="mb-4.5">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-1.5 space-y-2.5">
+                  <div className="mt-2.5 space-y-3">
                     {projects.map((project, index) => {
                       const githubUrl = project.github || (project as any).githubUrl;
                       const demoUrl =
@@ -288,11 +288,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "education":
               if (!education || education.length === 0) return null;
               return (
-                <section id="preview-section-education" key="education" className="mb-3.5">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-education" key="education" className="mb-4.5">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-1.5 space-y-1.5">
+                  <div className="mt-2.5 space-y-2">
                     {education.map((edu, index) => (
                       <div key={index} className="break-inside-avoid flex justify-between items-baseline text-xs">
                         <div>
@@ -318,11 +318,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "certifications":
               if (!certifications || certifications.length === 0) return null;
               return (
-                <section id="preview-section-certifications" key="certifications" className="mb-3.5 break-inside-avoid">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-certifications" key="certifications" className="mb-4.5 break-inside-avoid">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <div className="mt-1.5 space-y-1.5">
+                  <div className="mt-2.5 space-y-2">
                     {certifications.map((cert, index) => (
                       <div key={index} className="flex justify-between text-xs items-baseline">
                         <div>
@@ -339,11 +339,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "achievements":
               if (!achievements || achievements.length === 0) return null;
               return (
-                <section id="preview-section-achievements" key="achievements" className="mb-3.5">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-achievements" key="achievements" className="mb-4.5">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <ul className="mt-1.5 space-y-1 text-xs text-gray-800">
+                  <ul className="mt-2.5 space-y-2 text-xs text-gray-800">
                     {achievements.map((achievement, index) => {
                       const cleanTitle = (achievement.title || "").replace(/^[•\-\*\s]+/, "").trim();
                       const cleanDesc = (achievement.description || "").replace(/^[•\-\*\s]+/, "").trim();
@@ -364,11 +364,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "languages":
               if (!languages || languages.length === 0) return null;
               return (
-                <section id="preview-section-languages" key="languages" className="mb-3.5">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-languages" key="languages" className="mb-4.5">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <p className="mt-1 text-xs text-gray-800">
+                  <p className="mt-2.5 text-xs text-gray-800">
                     {languages
                       .map((lang) => `${lang.name}${lang.proficiency ? ` (${lang.proficiency})` : ""}`)
                       .join(" • ")}
@@ -379,11 +379,11 @@ export default function OffCampusTemplate({ resume }: Props) {
             case "interests":
               if (!interests || interests.length === 0) return null;
               return (
-                <section id="preview-section-interests" key="interests" className="mb-3.5">
-                  <h2 className="border-b border-gray-900 pb-0.5 text-xs font-bold uppercase tracking-wider text-gray-950">
+                <section id="preview-section-interests" key="interests" className="mb-4.5">
+                  <h2 className="border-b border-gray-900 pb-1 text-xs font-bold uppercase tracking-wider text-gray-950">
                     {title}
                   </h2>
-                  <p className="mt-1 text-xs text-gray-800">
+                  <p className="mt-2.5 text-xs text-gray-800">
                     {interests.map((interest) => interest.name).join(" • ")}
                   </p>
                 </section>

@@ -478,17 +478,20 @@ export default function ResumeBuilder() {
       const padX = 1.2; // mm padding for comfortable click targets
       const padY = 0.8; // mm padding for comfortable click targets
 
-      if (fitToOnePage || imgHeightInMm <= pdfHeight) {
-        // Fit image onto 1 page
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      // Check if document naturally fits on a single page
+      const fitsNaturallyOnOnePage = imgHeightInMm <= pdfHeight;
+
+      if (fitsNaturallyOnOnePage) {
+        // Fits cleanly on 1 page: render at true 1:1 natural aspect ratio!
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, imgHeightInMm);
 
         // Add interactive PDF hyperlink annotations to page 1
         pdf.setPage(1);
         capturedLinks.forEach((link) => {
           const x = link.xRatio * pdfWidth;
-          const y = link.yRatio * pdfHeight;
+          const y = link.yRatio * imgHeightInMm;
           const w = link.wRatio * pdfWidth;
-          const h = link.hRatio * pdfHeight;
+          const h = link.hRatio * imgHeightInMm;
 
           pdf.link(
             Math.max(0, x - padX),
@@ -499,7 +502,8 @@ export default function ResumeBuilder() {
           );
         });
       } else {
-        // Page-by-Page Canvas Cropping Engine: Crops exact A4 pages to eliminate text slicing
+        // Multi-page document: Crops exact A4 pages with 100% natural, uncompressed aspect ratio!
+        // Never squashes or crushes text vertically; renders crisp, clear typography matching Image 2!
         const pageCanvasHeight = Math.floor((canvas.width * pdfHeight) / pdfWidth);
         const totalPages = Math.max(1, Math.ceil(canvas.height / pageCanvasHeight));
 

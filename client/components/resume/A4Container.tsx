@@ -22,7 +22,7 @@ export default function A4Container({
   children,
   padding,
   paperSize = "a4",
-  fitToOnePage = true,
+  fitToOnePage = false,
 }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

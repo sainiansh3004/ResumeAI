@@ -73,14 +73,14 @@ Create resumes with fully customizable sections:
 
 ---
 
-### 🎨 8 Resume Templates
+### 🎨 9 Resume Templates
 
-| Free Templates | Pro Templates |
-|---------------|---------------|
-| Modern | Executive |
-| ATS | Tech |
-| Minimal | Academic |
-| Creative | Sleek |
+| Free Templates | Pro Templates | Specialized Templates |
+|---------------|---------------|-----------------------|
+| Modern | Executive | Off-Campus Pro (Tech & Engineering) |
+| ATS | Tech | |
+| Minimal | Academic | |
+| Creative | Sleek | |
 
 ---
 
@@ -90,7 +90,8 @@ Create resumes with fully customizable sections:
 - Drag & Drop Section Reordering
 - Hide/Show Sections
 - Custom Section Titles
-- Typography & Layout Controls (Font Family, Size, Line Height, Margins)
+- Typography & Layout Controls (Font Family, Size, Line Height, Margins, Paper Format)
+- Single-Page Strict Auto-Fit vs Multi-Page Flow Modes
 - 5 Theme Colors (Blue, Purple, Green, Black, Red)
 - Undo/Redo Support
 - Auto Save
@@ -110,20 +111,26 @@ Create resumes with fully customizable sections:
 
 ### 💳 Billing (Razorpay)
 
-- Free tier with 4 standard templates
-- Pro plan (₹999/year) unlocks all 8 templates, AI suite, and portfolio hosting
+- Free tier with standard templates
+- Pro plan (₹999/year) unlocks all templates, AI suite, and portfolio hosting
 - Razorpay payment gateway integration
 - Demo mode for local development
 
 ---
 
-### 📄 Export
+### 📄 High-Fidelity PDF Export
 
-- **Dual PDF Generation Engine**:
-  - **Direct High-Res PDF Download**: Client-side html2canvas + jsPDF engine with full font synchronization, dynamic glyph spacing, single-page strict fit, and multi-page smart page break protection.
-  - **Vector ATS-Perfect Print Export**: Native browser print (`Cmd+P` / Save as PDF) with print-optimized CSS, selectable text, active hyperlinks, and zero margin bleed.
-- **Universal Export Access**: Available directly from both the Resume Builder (`/resume/:id`) and the Public Shareable View (`/view/:id`).
-- **Resilient Fallback**: Automatic public resume fallback ensures resumes load seamlessly without 401 auth errors.
+- **1-Page Strict Fit with 1:1 Aspect Ratio Preservation**:
+  - Resumes export onto **exactly 1 page by default** without vertical font compression or flattened glyphs.
+  - Proportional uniform scaling (`scaleFactor = Math.min(1, pdfHeight / imgHeightInMm)`) preserves letter geometry, font proportions, and clear section heading separation.
+- **Active Clickable PDF Hyperlinks**:
+  - All links (GitHub repo, live demos, LinkedIn, email, portfolio) are converted to native interactive PDF link annotations with pixel-perfect coordinate mapping.
+- **Multi-Page Flow Mode**:
+  - Easily switch to Multi-Page mode for extensive resumes with clean page breaks, uncompressed A4 slicing, and per-page link routing.
+- **Vector ATS-Perfect Print Export**:
+  - Native browser print (`Cmd+P` / Save as PDF) with print-optimized CSS, selectable text, active hyperlinks, and zero margin bleed.
+- **Universal Export Access**:
+  - Download directly from both the Resume Builder (`/resume/:id`) and the Public Shareable View (`/view/:id`).
 
 ---
 
@@ -167,7 +174,8 @@ ResumeAI
 │   │   ├── dashboard/         # User dashboard
 │   │   ├── login/             # Login page
 │   │   ├── register/          # Registration page
-│   │   ├── resume/[id]/       # Resume builder
+│   │   ├── resume/[id]/       # Resume builder & live editor
+│   │   ├── view/[id]/         # Public shareable resume view & export
 │   │   ├── portfolio/[subdomain]/ # Public portfolio page
 │   │   ├── not-found.tsx      # Custom 404 page
 │   │   ├── globals.css        # Global styles + print CSS
@@ -182,7 +190,7 @@ ResumeAI
 │   │   ├── portfolio/         # Portfolio customizer
 │   │   └── resume/
 │   │       ├── forms/         # Section form components
-│   │       ├── templates/     # 8 resume templates
+│   │       ├── templates/     # 9 resume templates (including Off-Campus Pro)
 │   │       ├── ResumeForm.tsx
 │   │       ├── ResumePreview.tsx
 │   │       ├── TemplateSelector.tsx
